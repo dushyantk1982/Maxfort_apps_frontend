@@ -11,8 +11,10 @@ const CustomeNavbar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () =>{
+    // localStorage.removeItem("token");
+    // navigate("/login");
     localStorage.removeItem("token");
-    navigate("/login");
+        navigate("/login");
   };  
 
   
@@ -31,22 +33,25 @@ const CustomeNavbar = () => {
         <Navbar.Collapse id="navbar-nav">
             <Nav className="ms-auto">
               <Nav.Link as={Link} to="/dashboard"><i className="bi bi-house-door-fill"></i> Dashboard</Nav.Link>
-              <Nav.Link as={Link} to="/createApp"><i className="bi bi-laptop"></i> Add Apps</Nav.Link>
-              {/* <NavDropdown title={<span><i className="bi bi-laptop"></i> Applications</span>} id="apps-fropdown">
-                  <NavDropdown.Item as={Link} to="/createApp"><i class="bi bi-window-plus"></i> Add Apps</NavDropdown.Item>
-              </NavDropdown> */}
+              {/* <Nav.Link as={Link} to="/register"><i className="bi bi-person-fill-add"></i> Add Users</Nav.Link> */}
+              <NavDropdown title={<span><i className="bi bi-people-fill"></i> Users</span>} id="apps-fropdown">
+                  <NavDropdown.Item as={Link} to="/register"><i className="bi bi-person-fill-add"></i> Add New</NavDropdown.Item>
+                  <NavDropdown.Divider />
+                  <NavDropdown.Item as={Link} to="/users"><i className="bi bi-view-list"></i> View </NavDropdown.Item>
+                  <NavDropdown.Item as={Link} to="/add-credentials"><i className="bi bi-list-check"></i> App Credentials </NavDropdown.Item>
+              </NavDropdown>
               {/* Dropdown Menu 1: User Account */}
               <NavDropdown title={<span><i className="bi bi-person-circle"></i> Account</span>} id="account-fropdown">
                   <NavDropdown.Item as={Link} to="/profile">
                     <i className="bi bi-person-badge-fill"></i> Profile
                   </NavDropdown.Item>
-                  {/* <NavDropdown.Item as={Link} to="/settings">
-                    <i className="bi bi-gear-fill"></i> Settings
+                  {/* <NavDropdown.Item as={Link} to="/register">
+                  <i className="bi bi-person-fill-add"></i> Add User
                   </NavDropdown.Item> */}
                   <NavDropdown.Divider />
                   <NavDropdown.Item onClick={handleLogout}>
-                    <Logout />
-                    {/* <i className="bi bi-box-arrow-right"></i> Logout */}
+                    {/* <Logout /> */}
+                    <i className="bi bi-box-arrow-right"></i> Logout
                   </NavDropdown.Item>
               </NavDropdown>
              

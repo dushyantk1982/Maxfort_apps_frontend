@@ -1,0 +1,42 @@
+/* UserList.css */
+.user-table-container {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+    
+  .user-table th {
+    background-color: #343a40;
+    color: #ffffff;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .user-table td {
+    vertical-align: middle;
+    text-align: center;
+  }
+  
+  .user-table tr:hover {
+    background-color: #e9ecef;
+  }
+  
+  .pagination {
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+  
+  .action-btns .btn {
+    min-width: 75px;
+  }
+  
+  .gradient-header th {
+    background: #2575fc;
+    color: white;
+  }
+
+  .view-icon:hover {
+    color: #0d6efd; /* Bootstrap primary color or your custom */
+    transform: scale(1.1);
+  }

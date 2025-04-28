@@ -6,17 +6,17 @@ import { fetchProtectedData } from "../utils/api";
 import Logout from "../components/Logout";
 
 const applications = [
-    {name:"Google Classroom", url:"https://classroom.google.com", logo:"https://www.gstatic.com/classroom/logo_square_rounded.svg", username: "aravu0020@gmail.com",
-        password: "Arav@12345"},
-    { name: "Canvas LMS", url: "https://canvas.instructure.com", logo: "https://www.instructure.com/sites/default/files/styles/small_hq/public/image/2024-11/canvas_bug_color_rgb.png.webp?itok=OvyVtB0r", username: "student@school.edu",
+    {name:"Microsoft Outlook", url:"https://login.microsoftonline.com/common/oauth2/authorize?client_id=00000002-0000-0ff1-ce00-000000000000&redirect_uri=https%3a%2f%2foutlook.office365.com%2fowa%2f&resource=00000002-0000-0ff1-ce00-000000000000&response_mode=form_post&response_type=code+id_token&scope=openid&msafed=1&msaredir=1&client-request-id=23d508a5-df78-2562-5cab-e568ccc3ba0d&protectedtoken=true&claims=%7b%22id_token%22%3a%7b%22xms_cc%22%3a%7b%22values%22%3a%5b%22CP1%22%5d%7d%7d%7d&nonce=638767523468902311.ce8c037e-3f69-40bc-b8a9-e0ded7cc319d&state=Dcu9DoIwFEDhou_iVrltoT8DcTAxDOCAJBq29rYmEgmmEIxvb4fvbCcjhOyTXZJBClFSaCVVyUUhtQEuGDti0AhCBSqe0tACHFKnraEBfPAKUTDjs_TW-fy1-WlZ7RoqdojBv2LAtZ8rW3eAdSubn9n8o1scN7GZzDRM73HoW369laPjsLn75ePO-g8&sso_reload=true", logo:"https://uhf.microsoft.com/images/microsoft/RE1Mu3b.png", username: "dushyant@dsds.co.in",
+        password: "Welcome01??"},
+    { name: "Schoology (LMS)", url: "https://maxfortrohini.schoology.com", logo: "https://uhf.microsoft.com/images/microsoft/RE1Mu3b.png", username: "Ilisha46518@maxfortrohini.in",
+        password: "ilisha@46518" },
+  { name: "Entab (ERP)", url: "https://www.maxfortcampuscare.in/", logo: "https://maxfortrohini.in/wp-content/uploads/2022/12/Maxfort-logo-VB-v2.1-354x300-1.png", username: "P47088",
+    password: "123456" },
+    { name: "Embibe", url: "www.embibe.com", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEzkaVgt8prNMg0D409JnstHY4yAdMCt-nTpDaLcOumKAXz40tmMSgn3_xxcG8p30byLM&usqp=CAU", username: "student@school.edu",
         password: "canvasPass456" },
-  { name: "Moodle", url: "https://moodle.org", logo: "https://moodle.org/theme/moodleorg/pix/moodle_logo_TM.svg", username: "student@school.edu",
-    password: "canvasPass456" },
-    { name: "Gmail", url: "https://accounts.google.com/InteractiveLogin/signinchooser?service=mail&ifkv=ASSHykrxIvecsr0JradH2ex4DPPhDpM5d-7BXJESjYvKsi-a7unfsA0O02UWjvl_MKVXSzzh-kfw4Q&ddm=1&flowName=GlifWebSignIn&flowEntry=ServiceLogin", logo: "https://static.vecteezy.com/system/resources/previews/013/948/544/non_2x/gmail-logo-on-transparent-white-background-free-vector.jpg", username: "student@school.edu",
-        password: "canvasPass456" },
-    { name: "Office365", url: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=4765445b-32c6-49b0-83e6-1d93765276ca&redirect_uri=https%3A%2F%2Fwww.office.com%2Flandingv2&response_type=code%20id_token&scope=openid%20profile%20https%3A%2F%2Fwww.office.com%2Fv2%2FOfficeHome.All&response_mode=form_post&nonce=638773576780172307.YTMwMzg1ZGItNGI1My00MGExLTg5NmMtZjM4Zjk0MjI2YmIyYjFmM2M0MzktMzc0Mi00N2YxLWI2MWYtOWM1N2E2ZGU3MGUw&ui_locales=en-GB&mkt=en-GB&client-request-id=c7e99f2b-9de6-4fbb-9acf-42d0449bdd00&state=--FPPBV3swhpjDPLv_VWYy0JwBYKcl0ibANFtlxnJUU_T7PP-ZhlxtGUTi8xpjYBcLbsnRaA4PWtj2w6GHr6Gwdxvolsy17rsp2BbWGMoIncg8HF027EnPUBiXBeqM2QiaLBNvnoC4-Qj9DZe7-ZPr3OLQi0pLKIpm1f8W6u5GJF0TMWgm-xSeCWqAuJkxSqmbFy17ucNLYV9OqRUwdAamBgHfICoAGWb61ZItgZiDfCssG3ia2HoVj7g7m3FUst-ZE3nW8nQr961zmchHQvWC6yV5_eZqhxQG6R31PLY2M&x-client-SKU=ID_NET8_0&x-client-ver=7.5.1.0", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkfNV1YtiGc-HUrSF4OfHIX50fUSmXWPWP2g&s", username: "admin@gmail.com",
+    { name: "Scholastic E- library", url: "https://slz02.scholasticlearningzone.com/resources/dp-int/dist/#/login3/INDWTPQ", logo: "https://slz02.scholasticlearningzone.com/resources/dp-int/dist/assets/images/scholastic_logo.jpg", username: "admin@gmail.com",
       password: "Admin@123" },
-      { name: "Payroll", url: "https://www.dsds.co.in/payroll/", logo: "https://www.dsds.co.in/assets/img/logo2.png", username: "admin@gmail.com",
+      { name: "Razplus from learning A-Z", url: "https://www.kidsa-z.com/ng/", logo: "https://aimkt.misacdn.net/app/vr8x81d7/attachment/41f49e45-cff8-4e3a-96bf-c41c7938b3de.png", username: "admin@gmail.com",
         password: "Admin@123" }
 ];
 
@@ -37,7 +37,7 @@ const Dashboard = () => {
         }
         
         try{
-          const response = await fetch("http://127.0.0.1:8000/protected", {
+          const response = await fetch("${API_BASE_URL}/protected", {
             method:"GET",
             headers: {
               "Authorization" : `Bearer ${token}`,
@@ -51,7 +51,7 @@ const Dashboard = () => {
           
           const data = await response.json();
           console.log("Protected Data: ", data);  
-          alert(data.message);
+          // alert(data.message);
           setUserData(data);
         }catch(error){
           console.error("Error fetching protected data: ", error);
@@ -60,24 +60,7 @@ const Dashboard = () => {
       fetchProtectedData();
     }, []);
 
-    // useEffect(() => {
-    //   const fetchUserData = async () => {
-    //     const data = await fetchWithAuth("/protected");
-    //     setUserData(data);
-    //   }
-
-    //   fetchUserData();
-    // }, []);
-
-    // useEffect(() => {
-    //     const token = localStorage.getItem("token");
-    //     if(!token){
-    //         navigate("/login");
-    //     }
-    // }, [navigate]);
-    // console.log("Rendering Dashboard...");
-
-    
+      
 
   return (
     <>
@@ -100,6 +83,7 @@ const Dashboard = () => {
           </Col>
         ))}
       </Row>
+      
     </Container>
     </>
   );

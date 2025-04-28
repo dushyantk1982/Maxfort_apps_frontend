@@ -5,7 +5,7 @@ import React from 'react'
 import "bootstrap/dist/css/bootstrap.min.css";
 import {jwtDecode} from "jwt-decode";
 
-const Login = () => {
+const LoginPage = () => {
     const[username, setUsername] = useState("");
     const[password, setPassword] = useState("");
     const[otp, setOtp] = useState("");
@@ -32,9 +32,9 @@ const Login = () => {
     };
 
     const handleVerifyOTP = async () => {
-        setError('');
+        setError('');;
         try {
-          const res = await verifyOTP(username, otp);
+          const res = await verifyOTP(username, otp);false;
           console.log('Verify OTP Response:', res);
         //   console.log('Role is :',role);
           if (res.access_token) {
@@ -85,35 +85,47 @@ const Login = () => {
     };
 
   return (
-    <>
-        <div className='d-flex align-items-center justify-content-center vh-100 bg-gradient' style={{background: "linear-gradient(to right, #6a11cb, #2575fc)", borderRadius:"10px", width:"450px"}}>
-            <div className='card shadow-lg p-4' style={{macWidth:"400px", width:"100%", borderRadius:"10px"}}>
-                <div className='text-center mb-3'>
-                    <h2 className='fw-bold text-primary text-center'>MyApps School SSO</h2>
-                    { !otpSend ? (
-                        <>
-                            <div className='mb3'>
-                                <input type="text" className='form-control' placeholder='Email' value={username} onChange={(e) => setUsername(e.target.value)} />
-                            </div>
-                            <div className='mb-3'>
-                                <input type='password' className='form-control' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)}/>
-                            </div>        
-                            <button className='btn btn-primary w-100' onClick={handleSendOtp}>Send OTP</button>
-                        </>
-                        ):(
-                            <>
-                                <div className='mb-3'>
-                                    <input type="text" className='form-control' placeholder='Enter OTP' value={otp} onChange={(e) => setOtp(e.target.value)}/>
-                                </div>
-                                <button className='btn btn-success w-100' onClick={handleVerifyOTP}>Verify OTP</button>
-                            </>
-                            )}
-                            {error && <div className='alert alert-danger mt-3'>{error}</div>}
+        <>
+         { !otpSend ? (
+            <>
+                <div className='d-flex align-items-center justify-content-center vh-100 bg-gradient' style={{background: "linear-gradient(to right, #6a11cb, #2575fc)", borderRadius:"10px", width:"450px"}}>
+                    <div className='card shadow-lg p-4' style={{macWidth:"400px", width:"100%", borderRadius:"10px"}}>
+                        <div className='text-center mb-3'>
+                            <h2 className='fw-bold text-primary text-center'>MyApps School SSO</h2>
+                        
+                                    <div className='mb3'>
+                                        <input type="text" className='form-control' placeholder='Email' value={username} onChange={(e) => setUsername(e.target.value)} />
+                                    </div>
+                                    <div className='mb-3'>
+                                        <input type='password' className='form-control' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)}/>
+                                    </div>        
+                                    <button className='btn btn-primary w-100' onClick={handleSendOtp}>Send OTP</button>
+                                
+                                        
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </>
+            ):(
+            <>
+                <div className='d-flex align-items-center justify-content-center vh-100 bg-gradient' style={{background: "linear-gradient(to right, #6a11cb, #2575fc)", borderRadius:"10px", width:"450px"}}>
+                    <div className='card shadow-lg p-4' style={{macWidth:"400px", width:"100%", borderRadius:"10px"}}>
+                        <div className='text-center mb-3'>
+                            <h2 className='fw-bold text-primary text-center'>MyApps School SSO</h2>
+                        
+                                        <div className='mb-3'>
+                                            <input type="text" className='form-control' placeholder='Enter OTP' value={otp} onChange={(e) => setOtp(e.target.value)}/>
+                                        </div>
+                                        <button className='btn btn-success w-100' onClick={handleVerifyOTP}>Verify OTP</button>
+                                
+                                    {error && <div className='alert alert-danger mt-3'>{error}</div>}
+                        </div>
+                    </div>
+                </div>
+            </>
+        )}
     </>
   )
 }
 
-export default Login
+export default LoginPage
