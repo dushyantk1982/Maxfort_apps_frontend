@@ -29,10 +29,10 @@ function App() {
           <Route path='/' element={<Login />}/>
           <Route path='/login' element={<Login />}/>
           <Route path="/unauthorized" element={<h2>Unauthorized Access</h2>} />
-          <Route element={<ProtectedRoute allowedRoles={["user", "admin"]} />}>
+          <Route element={<ProtectedRoute allowedRoles={["user", "admin", "student", "teacher"]} />}>
               <Route path='/dashboard' element={<Dashboard />}/>
               {/* <Route path='/createApp' element={<CreateApps />}/> */}
-              {/* <Route path='/profile' element={< Profile />} /> */}
+              <Route path='/profile' element={< Profile />} />
           </Route>
           <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
               {/* <Route path='/dashboard' element={<Dashboard />}/> */}

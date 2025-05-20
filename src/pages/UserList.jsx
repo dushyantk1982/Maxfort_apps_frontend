@@ -4,6 +4,7 @@ import { fetchUsers, deleteUser, updateUser } from "../utils/api";
 import CustomeNavbar from "../components/CustomeNavbar";
 import axios from 'axios';
 import '../css/UserList.css'
+import API_BASE_URL from "../config";
 
 
 const UserList = () => {
@@ -13,7 +14,7 @@ const [perPage, setPerPage] = useState(15);
 const [totalPages, setTotalPages] = useState(0);
 const [selectedUser, setSelectedUser] = useState(null); // To store the user details for editing/viewing
 const [showModal, setShowModal] = useState(false); // To control modal visibility
-const [userFormData, setUserFormData] = useState({ name: '', email: '', mobile_number: '', role: '', is_active:'' }); // For editing user details
+const [userFormData, setUserFormData] = useState({ name: '', email: '', mobile_number: '', role: '', is_active:'', password:'' }); // For editing user details
 const [showConfirmModal, setShowConfirmModal] = useState(false);
 // const [selectedUser, setSelectedUser] = useState(null);
 
@@ -26,9 +27,10 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
   };
 
   useEffect(() => {
-    axios.get("http://localhost:8000/users")
+    // axios.get("http://localhost:8000/users")
+    axios.get(`${API_BASE_URL}/users`)
       .then(res => {
-        console.log(res.data); 
+        // console.log(res.data); 
         setUsers(res.data.users);  // Extracting the 'users' array from the response
         setTotalPages(res.data.total_pages); // Set the total pages for pagination
       })
@@ -51,7 +53,7 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const handleView = (user) => {
     setSelectedUser(user);
-    setUserFormData({ name: user.name, email: user.email, mobile_number: user.mobile_number, role: user.role });
+    setUserFormData({ name: user.name, email: user.email, mobile_number: user.mobile_number, role: user.role, password:'' });
     setShowModal(true); // Show the modal for user details
     // alert(`User Info:\nName: ${user.name}\nEmail: ${user.email}\nMobile: ${user.mobile_number}\nRole: ${user.role}`);
   };
@@ -67,11 +69,17 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
   };
 
   const handleSaveChanges = async () => {
-    console.log("Updating user ID:", selectedUser.id);
-    console.log("Data to send:", userFormData);
+    // console.log("Updating user ID:", selectedUser.id);
+    // console.log("Data to send:", userFormData);
     try {
+
+          const payload = { ...userFormData };
+          if (!payload.password) {
+            delete payload.password; // Don’t send empty password
+          }
+
         const result = await updateUser(selectedUser.id, userFormData);
-        console.log("User update result:", result)
+        // console.log("User update result:", result)
         setShowModal(false);
         fetchUsers(); // Refresh the table
         loadUsers();  // Refresh list after update
@@ -125,6 +133,7 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
         <th>Email</th>
         <th>Mobile</th>
         <th>Role</th>
+        <th>Status</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -136,6 +145,15 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
           <td>{user.email}</td>
           <td>{user.mobile_number}</td>
           <td>{user.role}</td>
+          <td>
+              <Form.Check 
+                type="switch"
+                id={`toggle-${user.id}`}
+                // label={user.is_active ? "Active" : "Inactive"}
+                checked={user.is_active}
+                onChange={(e) => handleToggleStatus(user, e.target.checked)}
+              />
+          </td>
           <td className="action-btns">
             {/* <Button variant="info" size="sm" className="me-2" onClick={() => handleView(user)} > */}
             <i className="bi bi-eye-fill text-info me-3 view-icon" onClick={() => handleView(user)} role="button" style={{ cursor: "pointer", fontSize: "1.2rem" }}></i>
@@ -148,13 +166,7 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
             > */}
               {/* <i className="bi bi-trash-fill text-danger me-3 view-icon" onClick={() => handleDelete(user.id)} role="button" style={{ cursor: "pointer", fontSize: "1.2rem" }}></i> */}
             {/* </Button> */}
-            <Form.Check 
-                type="switch"
-                id={`toggle-${user.id}`}
-                label={user.is_active ? "Active" : "Inactive"}
-                checked={user.is_active}
-                onChange={(e) => handleToggleStatus(user, e.target.checked)}
-              />
+            
           </td>
         </tr>
       ))}
@@ -182,48 +194,28 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
         <Modal.Body>
           <Form>
             <Form.Group controlId="userName">
-              <Form.Label>Name</Form.Label>
-              <Form.Control
-                type="text"
-                name="name"
-                value={userFormData.name}
-                onChange={handleInputChange}
-                disabled={!selectedUser}
-              />
+              <Form.Label className="fw-bold mb-1">Name</Form.Label>
+              <Form.Control className="mb-1" type="text" name="name" value={userFormData.name} onChange={handleInputChange} disabled={!selectedUser} />
             </Form.Group>
 
             <Form.Group controlId="userEmail">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                name="email"
-                value={userFormData.email}
-                disabled
-                readOnly
-                // onChange={handleInputChange}
-                // disabled={!selectedUser}
-              />
+              <Form.Label className="fw-bold mb-1">Email</Form.Label>
+              <Form.Control className="mb-1" type="email" name="email" value={userFormData.email} disabled readOnly />
             </Form.Group>
 
             <Form.Group controlId="userMobile">
-              <Form.Label>Mobile Number</Form.Label>
-              <Form.Control
-                type="text"
-                name="mobile_number"
-                value={userFormData.mobile_number}
-                onChange={handleInputChange}
-                disabled={!selectedUser}
-              />
+              <Form.Label className="fw-bold mb-1">Mobile Number</Form.Label>
+              <Form.Control className="mb-1" type="text" name="mobile_number" value={userFormData.mobile_number} onChange={handleInputChange} disabled={!selectedUser} />
+            </Form.Group>
+
+            <Form.Group controlId="userPassword">
+                <Form.Label className="fw-bold mb-1">Password</Form.Label>
+                <Form.Control className="mb-1" type="text" name="password" value={userFormData.password} placeholder="Leave blank to keep existing password" onChange={handleInputChange} />
             </Form.Group>
 
             <Form.Group controlId="userRole">
-              <Form.Label>Role</Form.Label>
-              <Form.Select
-                name="role"
-                value={userFormData.role}
-                onChange={handleInputChange}
-                disabled={!selectedUser}
-              >
+              <Form.Label className="fw-bold mb-1">Role</Form.Label>
+              <Form.Select className="mb-1" name="role" value={userFormData.role} onChange={handleInputChange} disabled={!selectedUser} >
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
                 <option value="student">Student</option>

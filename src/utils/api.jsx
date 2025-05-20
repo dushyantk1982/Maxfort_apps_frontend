@@ -1,8 +1,8 @@
 // import API_BASE_URL from "../config";
 import axios from "axios";
-
+import API_BASE_URL from "../config";
 // To connect backend
-const API_BASE_URL = "http://127.0.0.1:8000";
+// const API_BASE_URL = "http://127.0.0.1:8000";
 
 
 // To send otp 
@@ -95,7 +95,7 @@ export const registerUser = async (formData) => {
     return response.data;
   };
 
-  
+
 // To upload users in bulk via CSV or Excel
 export const uploadUsers = async (file) => {
     const formData = new FormData();
@@ -114,3 +114,21 @@ export const uploadUsers = async (file) => {
       throw error;
     }
   };
+
+
+// To fetch user credentials for application
+  export const fetchUserAppCredentials = async (appName) => {
+    const token = localStorage.getItem("token");
+    try {
+        const response = await axios.get(`${API_BASE_URL}/app-credentials/${appName}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching app credentials:", error);
+        throw error;
+    }
+};

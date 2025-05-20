@@ -10,11 +10,21 @@ const ProtectedRoute = ({allowedRoles}) => {
     const token = localStorage.getItem("token");
     const userRole = localStorage.getItem("role");
 
+    // console.log("Token:", token);
+    // console.log("UserRole:", userRole);
+
     if(!token){
+        console.warn("No token found! Redirecting to login...");
         return <Navigate to="/login" />;
     }
 
-    return allowedRoles.includes(userRole) ? <Outlet /> : <Navigate to="/unauthorized" />;
+    if (!allowedRoles.includes(userRole)) {
+        console.warn(`User role '${userRole}' not authorized! Redirecting to unauthorized...`);
+        return <Navigate to="/unauthorized" />;
+    }
+
+    return <Outlet />;
+    // return allowedRoles.includes(userRole) ? <Outlet /> : <Navigate to="/unauthorized" />;
 
 }
 

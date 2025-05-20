@@ -1,8 +1,10 @@
 import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { data, useNavigate } from "react-router-dom";
 import CustomeNavbar from "../components/CustomeNavbar";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { jwtDecode } from "jwt-decode";
+import API_BASE_URL from "../config";
 // import { preview } from "vite";
 // import React from 'react'
 
@@ -10,109 +12,96 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 const Profile = () => {
 
-    const profile_data={first_name:"Dushyant", last_name:"Upadhyay", email:"dushyant@dsds.co.in", contact:"9926216669", dob:"1982-11-10", gender:"Male", place:"Gwalior", role:"Student"};
 
 const [isEditing, setIsEditing]=useState(false);
-const [profile, setProfile]=useState(profile_data);
+const [profile, setProfile]=useState(null);
+
+useEffect(() => {
+    const token = localStorage.getItem("token");
+    if(!token) return;
+
+    const decoded = jwtDecode(token);
+    const userEmail = decoded?.sub;
+    
+    fetch(`${API_BASE_URL}/user/profile?email=${userEmail}`,{
+        headers:{
+            Authorization:`Bearer${token}`,
+        },
+    })
+    .then(res => res.json())
+    .then(data => {
+        setProfile(data)
+    })
+    .catch(err => console.error("Profile fetch error: ", err));
+
+}, []);
 
 const handleEdit = () =>{
     setIsEditing(true);
 }
 
-const handleChange = () =>{
+const handleChange = (e) =>{
     const {name, value} = e.target;
     // setProfile((previewProfile) => ({...previewProfile, [name]:value}));
-    setProfile({...profile, [name]: value});
+    // setProfile({...profile, [name]: value});
+    setProfile((prev) => ({ ...prev, [name]: value }));
 }
 
 const handleCancel = () =>{
-    setProfile(profile_data);
+    // setProfile(profile_data);
     setIsEditing(false);
 }
 
 const handleSave = () =>{
-    console.log("Update profile: ",profile);
-    alert("Profile updated successfully");
-    setIsEditing(false);
-}
+    const token = localStorage.getItem("token");
+    fetch(`${API_BASE_URL}/user/profile/update`, {
+        method:"PUT",
+        headers:{
+            "Content-Type":"application/json",
+            Authorization:`Bearer ${token}`,
+        },
+        body: JSON.stringify(profile),
+    })
+    .then((res) => res.json())
+    .then((data) => {
+        alert("Profile updates successfully");
+        setIsEditing(false);
+    })
+    .catch((err) => console.error("Save Error : ", err));
+
+};
+
+if (!profile) return <div>Loading...</div>;
 
   return (
     <>
       <CustomeNavbar />
-    <Container className="container mt-4" style={{height:"100vh", width:"100vw", color:"black"}}>
+    <Container className="container mt-4" style={{height:"100vh", width:"80vw", color:"black"}}>
         <Row className="justify-content-center">
             <Col md={8}>
                 <Card className="shadow-lg p-4 rounded">
-                    <Card.Body className="text-center text-primary mb-4">
-                        <h2 className="text-dark mb-4 text-center fw-bold text-primary" style={{color:"black"}}>
+                    <Card.Body>
+                        <h2 className="text-primary mb-4 text-center fw-bold text-primary" style={{color:"black"}}>
                             {isEditing ? "Edit Profile" : "View Profile"}
                         </h2>                
                         <Form>
-                            {/* First Name & Last Name */}
-                            <Row>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="text-dark">First Name</Form.Label>
-                                        <Form.Control type="text" name="first_name" value={profile.first_name} onChange={handleChange} disabled={!isEditing} />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="text-dark">Last Name</Form.Label>
-                                        <Form.Control type="text" name="last_name" value={profile.last_name} onChange={handleChange} disabled={!isEditing} />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="text-dark">Email</Form.Label>
-                                        <Form.Control type="email" name="email" value={profile.email} onChange={handleChange} disabled={!isEditing} />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="text-dark">Contact</Form.Label>
-                                        <Form.Control type="tel" name="contact" value={profile.contact} onChange={handleChange} disabled={!isEditing} />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="text-dark">Date of Birth</Form.Label>
-                                        <Form.Control type="date" name="dob" value={profile.dob} onChange={handleChange} disabled={!isEditing} />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="text-dark">Gender</Form.Label>
-                                        <Form.Select name="gender" value={profile.gender} onChange={handleChange} disabled={!isEditing}>
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
-                                            <option value="Other">Other</option>
-                                        </Form.Select>
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="text-dark">Place</Form.Label>
-                                        <Form.Control type="text" name="place" value={profile.place} onChange={handleChange} disabled={!isEditing} />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label className="text-dark">Role</Form.Label>
-                                        <Form.Select name="role" value={profile.role} onChange={handleChange} disabled={!isEditing}>
-                                            <option value="Admin">Admin</option>
-                                            <option value="Teacher">Teacher</option>
-                                            <option value="Student">Student</option>
-                                        </Form.Select>
-                                    </Form.Group>
-                                </Col>
-                            </Row>
+                            <Form.Group className="mb-3 text-start">
+                                <Form.Label className="fw-bold text-dark">Name</Form.Label>
+                                <Form.Control type="text" name="name" value={profile.name} onChange={handleChange} disabled={!isEditing} />
+                                
+                            </Form.Group>
+                            <Form.Group className="mb-3 text-start">
+                                <Form.Label className="text-dark fw-bold">Email</Form.Label>
+                                <Form.Control type="email" name="email" value={profile.email} onChange={handleChange} disabled />
+                            </Form.Group>
+                            <Form.Group className="mb-3 text-start">
+                                <Form.Label className="text-dark fw-bold">Contact</Form.Label>
+                                <Form.Control type="tel" name="contact" value={profile.contact} onChange={handleChange} disabled />
+                            </Form.Group>
+                            <Form.Group className="mb-3 text-start">
+                                <Form.Label className="text-dark fw-bold">Role</Form.Label>
+                                <Form.Control type="text" name="place" value={profile.role} onChange={handleChange} disabled />
+                            </Form.Group>
                             <div className="text-center">
                                 {isEditing ? (
                                     <>

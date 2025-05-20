@@ -22,8 +22,8 @@ const inputRefs = useRef([]);
           axios.get(`${API_BASE_URL}/applications`)
         ]);
 
-        console.log("Users:", usersRes.data);
-      console.log("Applications:", appsRes.data);
+        // console.log("Users:", usersRes.data);
+      // console.log("Applications:", appsRes.data);
       
         setUsers(usersRes.data);
         setApplications(appsRes.data);
