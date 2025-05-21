@@ -14,7 +14,8 @@ const applications = [
   { name: "Entab (ERP)", url: "https://www.maxfortcampuscare.in/", logo: "https://maxfortrohini.in/wp-content/uploads/2022/12/Maxfort-logo-VB-v2.1-354x300-1.png", supportsDirectLogin: false},
     { name: "Embibe", url: "https://www.embibe.com", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEzkaVgt8prNMg0D409JnstHY4yAdMCt-nTpDaLcOumKAXz40tmMSgn3_xxcG8p30byLM&usqp=CAU", supportsDirectLogin: false},
     { name: "Scholastic E- library", url: "https://slz02.scholasticlearningzone.com/resources/dp-int/dist/#/login3/INDWTPQ", logo: "https://slz02.scholasticlearningzone.com/resources/dp-int/dist/assets/images/scholastic_logo.jpg", supportsDirectLogin: false},
-      { name: "Razplus from learning A-Z", url: "https://www.kidsa-z.com/ng/", logo: "https://aimkt.misacdn.net/app/vr8x81d7/attachment/41f49e45-cff8-4e3a-96bf-c41c7938b3de.png", supportsDirectLogin: false}
+      { name: "Razplus from learning A-Z", url: "https://www.kidsa-z.com/ng/", logo: "https://aimkt.misacdn.net/app/vr8x81d7/attachment/41f49e45-cff8-4e3a-96bf-c41c7938b3de.png", supportsDirectLogin: false},
+      { name: "ICT 360", url: "https://kms.ict360.com/ict_v3/login", logo: "https://kms.ict360.com/ict_v3/assets/images/ict_logo.png", supportsDirectLogin: false}
 ];
 
 const Dashboard = () => {
