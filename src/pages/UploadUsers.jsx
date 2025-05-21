@@ -25,6 +25,18 @@ const UploadUsers = () => {
       }
     };
 
+    // code to give sample file to upload
+    const handleDownloadSample = () => {
+    // Create a sample Excel file URL
+    const sampleFileUrl = '/Sample_Users_List.xlsx'; // You'll need to add this file to your public folder
+    const link = document.createElement('a');
+    link.href = sampleFileUrl;
+    link.download = 'Sample_Users_List.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <>
         <CustomeNavbar />
@@ -34,8 +46,14 @@ const UploadUsers = () => {
             <Form.Group>
                 <Form.Control type="file" accept=".csv, .xlsx" onChange={handleFileChange} />
             </Form.Group>
-            <Button variant="primary" className="mt-2" onClick={handleUpload}>Upload</Button>
+            <Button variant="primary" className="mb-3 mt-2" onClick={handleUpload}>Upload</Button>
+            <div className="mb-3">
+                <Button variant="outline-primary" onClick={handleDownloadSample}>
+                    Download Sample Template
+                </Button>
             </div>
+            </div>
+             
             </div>
     </>
   );
