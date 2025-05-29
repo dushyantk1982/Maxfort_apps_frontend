@@ -18,6 +18,8 @@ import UploadUsers from "./pages/UploadUsers";
 import AddAppCredentials from "./pages/AppCredentials";
 // import ViewAppCredentials from "./pages/ViewAppCredentials";
 import BulkAppCredentials from "./pages/BulkAppCredentials";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 function App() {
@@ -49,6 +51,8 @@ function App() {
           <Route path="*" element= {<Navigate to="/login" />} />
         </Routes>
       </Router>
+
+      <ToastContainer position="top-right" autoClose={2000} />
 
      
     </>

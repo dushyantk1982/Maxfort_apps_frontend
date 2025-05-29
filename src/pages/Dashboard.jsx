@@ -18,8 +18,22 @@ const applications = [
   { name: "Entab (ERP)", url: "https://www.maxfortcampuscare.in/", logo: "https://maxfortrohini.in/wp-content/uploads/2022/12/Maxfort-logo-VB-v2.1-354x300-1.png", supportsDirectLogin: false},
     { name: "Embibe", url: "https://www.embibe.com", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEzkaVgt8prNMg0D409JnstHY4yAdMCt-nTpDaLcOumKAXz40tmMSgn3_xxcG8p30byLM&usqp=CAU", supportsDirectLogin: false},
     { name: "Scholastic E- library", url: "https://slz02.scholasticlearningzone.com/resources/dp-int/dist/#/login3/INDWTPQ", logo: "https://slz02.scholasticlearningzone.com/resources/dp-int/dist/assets/images/scholastic_logo.jpg", supportsDirectLogin: false},
-      { name: "Razplus from learning A-Z", url: "https://www.kidsa-z.com/ng/", logo: "https://aimkt.misacdn.net/app/vr8x81d7/attachment/41f49e45-cff8-4e3a-96bf-c41c7938b3de.png", supportsDirectLogin: false}
+      { name: "Razplus from learning A-Z", url: "https://www.kidsa-z.com/ng/", logo: "https://aimkt.misacdn.net/app/vr8x81d7/attachment/41f49e45-cff8-4e3a-96bf-c41c7938b3de.png", supportsDirectLogin: false},
+      { name: "ICT-360", url: "https://kms.ict360.com/ict_v3/login", logo: "https://kms.ict360.com/ict_v3/assets/images/ict_logo.png", supportsDirectLogin: false}
 ];
+
+// Chrome Extension configuration
+const CHROME_EXTENSION_ID = "hpehkhbgcobleobgjggakdmnmanobfio";
+const APP_KEY_MAP = {
+  "Microsoft Outlook": "microsoft",
+  "Schoology (LMS)": "schoology",
+  "Entab (ERP)": "maxfort",
+  "Embibe": "embibe",
+  "Scholastic E- library": "scholastic",
+  "Razplus from learning A-Z": "kidsaz",
+  "ICT-360": "ict360"
+};
+
 
 const Dashboard = () => {
 
@@ -35,7 +49,7 @@ const Dashboard = () => {
     useEffect(() => {
       const fetchProtectedData = async () => {
         const token = localStorage.getItem("token");
-        console.log("Token:", token);
+        // console.log("Token:", token);
         
         if(!token){
           console.error("No token found");
@@ -56,7 +70,6 @@ const Dashboard = () => {
           }
           
           const data = await response.json();
-          // console.log("Protected Data: ", data);  
           // alert(data.message);
           setUserData(data);
         }catch(error){
@@ -66,44 +79,113 @@ const Dashboard = () => {
       fetchProtectedData();
     }, []);
 
-    const handleVaultClick = async () =>{
-      // console.log("Vault button clicked");
-      const token = localStorage.getItem("token");
-      const userId = userData?.user?.id;
-      if (!userId) {
-        console.error("User ID not found. Cannot fetch credentials.");
-        return;
-      }
+    const handleVaultClick = async () =>
+    {
+        // console.log("Vault button clicked");
+        const token = localStorage.getItem("token");
+        const userId = userData?.user?.id;
+        if (!userId) 
+        {
+            console.error("User ID not found. Cannot fetch credentials.");
+            return;
+        }
 
-      try{
-        const response = await fetch(`${API_BASE_URL}/user-credentials/${userId}`,{
-          headers:{
-            "Authorization":`Bearer ${token}`
-          }
-        });
-        if(!response.ok) throw new Error("Failed to fetch credentials");
-        const data = await response.json();
-        // console.log("Protected Data: ", data);
-        setVaultData(data);
-        setShowVault(true);
-        // console.log("showVault:", showVault);
-      }catch(error){
-        console.error("Vault fetch error: ", error);
-        alert("Could not load credentials");
-      }
-    };
+        try
+        {
+            const response = await fetch(`${API_BASE_URL}/user-credentials/${userId}`,{ headers:{ "Authorization":`Bearer ${token}` } });
+        
+            if(!response.ok) throw new Error("Failed to fetch credentials");
+            const data = await response.json();
+            // console.log("Protected Data: ", data);
+            setVaultData(data);
+            setShowVault(true);
+            
+            // Check if extension is available
+            const isExtensionAvailable = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage;
+            // console.log("Chrome runtime available:", typeof chrome !== 'undefined');
+            // console.log("Chrome runtime object:", chrome?.runtime ? "Yes" : "No");
+            // console.log("Chrome sendMessage available:", chrome?.runtime?.sendMessage ? "Yes" : "No");
+            // // Send credentials to the Chrome Extension
+            if (isExtensionAvailable) {
+                try
+                {
+                    // Check existing credentials in extension
+                    chrome.runtime.sendMessage(CHROME_EXTENSION_ID, { type: 'GET_CREDENTIALS' }, async (response) => {
+                          if (chrome.runtime.lastError) {
+                                console.error("Error checking extension credentials:", chrome.runtime.lastError);
+                                return;
+                          }
+                    // Create credentials object for Chrome Extension
+                    const extensionCredentials = {};
+                    data.forEach(cred => 
+                      { const appKey = APP_KEY_MAP[cred.app_name]; 
+                          if (appKey) {
+                              extensionCredentials[appKey] = {
+                                  username: cred.username,
+                                  password: cred.password
+                              };
+                          }
+                    });
+                    // Only update if credentials are different
+                    const needsUpdate = !response?.credentials || Object.keys(extensionCredentials).some(key => {
+                        const existing = response.credentials[key];
+                        const updated = extensionCredentials[key];
+                        return !existing || 
+                            existing.username !== updated.username || 
+                            existing.password !== updated.password;
+                    });
+                    
+                    if (needsUpdate) {
+                        console.log("Credentials need update, sending to extension:", extensionCredentials);
+              
+                        // Send message to Chrome Extension
+                        chrome.runtime.sendMessage(CHROME_EXTENSION_ID, {
+                            type: 'UPDATE_CREDENTIALS',
+                            credentials: extensionCredentials
+                        }, response => {
+                            if (chrome.runtime.lastError) {
+                                // console.error("Chrome Extension error:", chrome.runtime.lastError);
+                                toast.error("Failed to sync with Chrome Extension. Please make sure it's installed and enabled.");
+                                return;
+                            }
+                            if (response && response.success) {
+                                // console.log("Credentials successfully synced with extension");
+                                toast.success("Credentials synced with Chrome Extension");
+                            } else {
+                                // console.error("Failed to sync credentials with Chrome Extension");
+                                toast.error("Failed to sync credentials with Chrome Extension");
+                            }
+                        });
+                    } else {
+                          console.log("Credentials are up to date in extension");
+                    }
+                });
+              } catch(error)
+                {     
+                    // console.error("Error in sending credentials to Extension", error);
+                    toast.error("Error communicating with Chrome Extension");
+                }
+            } else {
+                    // console.log("Extension is not detected");
+                    toast.warning("Chrome Extension not detected. Please install the extension to enable auto-login features.");
+            }
+        }catch(error)
+         {
+            // console.error("Vault fetch error: ", error);
+            alert("Could not load credentials");
+            // toast.error("Could not load credentials");
+         }
+      };
 
-    const handleAppClick = async (app) => {
-      try {
+    const handleAppClick = async (app) => 
+    {
+      try
+      {
         const credentials = await fetchUserAppCredentials(app.name);
     
-        // if (!credentials.username || !credentials.password) {
-        //   console.error("No credentials found for this app");
-        //   window.open(app.url, '_blank');
-        //   return;
-        // }
-
-        if(app.supportsDirectLogin && credentials.username && credentials.password){
+      
+        if(app.supportsDirectLogin && credentials.username && credentials.password)
+        {
             // Create hidden form
             const form = document.createElement('form');
             form.method = 'POST';
@@ -128,17 +210,18 @@ const Dashboard = () => {
             form.submit();
             document.body.removeChild(form);
 
-        }else{
+        }
+        else
+        {
           // For third-party apps, just open the login page
           window.open(app.url, '_blank');
         }
-
-        
-      } catch (error) {
-      console.error("Error during login attempt: ", error);
-      window.open(app.url, '_blank');
-    }
-};
+    
+        } catch (error) {
+          console.error("Error during login attempt: ", error);
+          window.open(app.url, '_blank');
+        }
+      };
 
 
 const togglePasswordVisibility = (index) => {
@@ -170,12 +253,12 @@ const handleSaveEdit = async () => {
       return;
     }
 
-    console.log("Updating credential for:", {
-      email: userEmail,
-      app: editingCredential.app_name,
-      username: editFormData.username,
-      password: editFormData.password
-    });
+    // console.log("Updating credential for:", {
+    //   email: userEmail,
+    //   app: editingCredential.app_name,
+    //   username: editFormData.username,
+    //   password: editFormData.password
+    // });
     
     const response = await axios.put(
       `${API_BASE_URL}/update-credential/${userEmail}/${editingCredential.app_name}`,
@@ -203,6 +286,48 @@ const handleSaveEdit = async () => {
         const updatedVault = await vaultRes.json();
         setVaultData(updatedVault);
         toast.success("Credential updated successfully!");
+
+
+        // Update Chrome Extension with new credentials
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+          try {
+        
+            const appKey = APP_KEY_MAP[editingCredential.app_name];
+            if (appKey) {
+              // console.log("Sending updated credential to extension:", {
+              //   [appKey]: {
+              //     username: editFormData.username,
+              //     password: editFormData.password
+              //   }
+              // });
+
+              chrome.runtime.sendMessage(CHROME_EXTENSION_ID, {
+                type: 'UPDATE_CREDENTIALS',
+                credentials: {
+                  [appKey]: {
+                    username: editFormData.username,
+                    password: editFormData.password
+                  }
+                }
+              }, response => {
+                if (chrome.runtime.lastError) {
+                  console.error("Chrome Extension error:", chrome.runtime.lastError);
+                  return;
+                }
+                if (response && response.success) {
+                  // console.log("Credential successfully updated in extension");
+                  toast.success("Chrome Extension credentials updated");
+                } else {
+                  console.error("Failed to update Chrome Extension credentials");
+                }
+              });
+            }
+          } catch (error) {
+            console.error("Error updating Chrome Extension credentials:", error);
+          }
+        }
+
+
         setEditingCredential(null);
         setEditFormData({ username: '', password: '' });
       } else {
@@ -210,16 +335,13 @@ const handleSaveEdit = async () => {
       }
     }
   } catch (error) {
-    console.error("Failed to update credentials:", error);
+    // console.error("Failed to update credentials:", error);
     toast.error(error.response?.data?.detail || "Failed to update credentials");
   }finally {
     setIsUpdating(false);
   }
 };
-
-
-
-        
+       
 
   return (
     <>
@@ -253,137 +375,7 @@ const handleSaveEdit = async () => {
      
     </Container>
     
-    {/* // Model JSX */}
-    {/* <Modal show={showVault} onHide={() => setShowVault(false)} centered size="lg">
-      <Modal.Header closeButton className="bg-primary text-white">
-        <Modal.Title>🔐 My Vault</Modal.Title>
-      </Modal.Header>
-      <Modal.Body style={{ backgroundColor: "#f8f9fa" }}>
-        {vaultData.length > 0 ? (
-          <Table responsive bordered hover className="text-center shadow-sm rounded" style={{ backgroundColor: "white" }}>
-            <thead className="bg-light">
-              <tr>
-                <th>Application</th>
-                <th colSpan={"2"}>Username</th>
-                <th colSpan={"2"}>Password</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vaultData.map((cred, index) => (
-                <tr key={index}>
-                  <td className="fw-bold text-start">{cred.app_name}</td>
-                  <td>
-                    <div className="text-start"> */}
-                      {/* <span>{cred.username}</span> */}
-                       {/* {editingCredential?.app_name === cred.app_name ? (
-                          <input type="text" value={editFormData.username} onChange={(e) => setEditFormData({ ...prev, username: e.target.value }) } className="form-control" />
-                        ) : (
-                          <span>{cred.username}</span>
-                        )}
-                      
-                    </div>
-                  </td>
-                  <td>
-                    <Button
-                        variant="outline-primary"
-                        size="sm"
-                        onClick={() => navigator.clipboard.writeText(cred.username)}
-                        title="Copy Username"
-                      >
-                       <i className="bi bi-copy"></i>
-                      </Button>
-                  </td>
-                  <td>
-                    <div className="text-start">
-                        {editingCredential?.app_name === cred.app_name ? (
-                          <input
-                            type="text"
-                            value={editFormData.password}
-                            onChange={(e) =>
-                              setEditFormData({ ...editFormData, password: e.target.value })
-                            }
-                            className="form-control"
-                          />
-                        ) : (
-                      <span style={{ fontFamily: "monospace" }}>
-                        {visiblePasswords[index] ? cred.password : '•'.repeat(cred.password.length)}
-                      </span>
-                       )}
-                    </div>
-              </td>
-              <td>
-                <div>
-                        {editingCredential?.app_name === cred.app_name ? (
-                            <>
-                              <Button
-                                variant="success"
-                                size="sm"
-                                className="me-1"
-                                onClick={handleSaveEdit}
-                                title="Save"
-                              >
-                                <i className="bi bi-check2"></i>
-                              </Button>
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => setEditingCredential(null)}
-                                title="Cancel"
-                              >
-                                <i className="bi bi-x"></i>
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <Button
-                                variant="outline-primary"
-                                size="sm"
-                                onClick={() => togglePasswordVisibility(index)}
-                                className="me-1"
-                                title={visiblePasswords[index] ? "Hide Password" : "Show Password"}
-                              >
-                                {visiblePasswords[index] ? (
-                                  <i className="bi bi-eye-slash"></i>
-                                ) : (
-                                  <i className="bi bi-eye"></i>
-                                )}
-                              </Button>
-                              <Button
-                                variant="outline-primary"
-                                size="sm"
-                                onClick={() => navigator.clipboard.writeText(cred.password)}
-                                title="Copy Password"
-                                className="me-1"
-                              >
-                                <i className="bi bi-copy"></i>
-                              </Button>
-                              <Button
-                                variant="outline-primary"
-                                size="sm"
-                                onClick={() => handleEdit(cred)}
-                                title="Edit Credentials"
-                              >
-                                <i className="bi bi-pencil"></i>
-                              </Button>
-                            </>
-                          )}
-          
-        </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    ) : (
-      <p className="text-muted text-center">No credentials found.</p>
-    )}
-  </Modal.Body>
-  <Modal.Footer>
-    <Button variant="primary" onClick={() => setShowVault(false)}>
-      Close
-    </Button>
-  </Modal.Footer>
-</Modal> */}
+    
 
 <Modal show={showVault} onHide={() => setShowVault(false)} centered size="lg">
         <Modal.Header closeButton className="bg-primary text-white">

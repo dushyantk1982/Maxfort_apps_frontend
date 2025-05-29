@@ -29,7 +29,7 @@ const CustomeNavbar = () => {
 
   return (
     
-    <Navbar bg="dark" variant="dark" expand="lg" className="shadow-sm fixed-top">
+    <Navbar bg="primary" variant="dark" expand="lg" className="shadow-sm fixed-top">
       <Container>
         {/* Navbar Brand / Logo */}
         <Navbar.Brand as={Link} to="/dashboard"><i className="bi bi-grid-fill"></i> Maxfort Apps</Navbar.Brand>
@@ -40,34 +40,23 @@ const CustomeNavbar = () => {
         {/* Navbar Menu */}
         <Navbar.Collapse id="navbar-nav">
             <Nav className="ms-auto">
-              <Nav.Link as={Link} to="/dashboard"><i className="bi bi-house-door-fill"></i> Dashboard</Nav.Link>
+              <Nav.Link as={Link} to="/dashboard" className="text-white"><i className="bi bi-house-door-fill"></i> Dashboard</Nav.Link>
               {/* Conditionally render Users dropdown if role is admin */}
                 {role === "admin" && (
-                  <NavDropdown title={<span><i className="bi bi-people-fill"></i> Users</span>} id="apps-dropdown">
-                    <NavDropdown.Item as={Link} to="/register"><i className="bi bi-person-fill-add"></i> Add New</NavDropdown.Item>
+                  <NavDropdown title={<span className="text-white"><i className="bi bi-people-fill"></i> Users</span>} id="apps-dropdown">
+                    <NavDropdown.Item as={Link} to="/register" className="text-primary"><i className="bi bi-person-fill-add text-primary"></i> Add New User</NavDropdown.Item>
                     <NavDropdown.Divider />
-                    <NavDropdown.Item as={Link} to="/users"><i className="bi bi-view-list"></i> View</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/add-credentials"><i className="bi bi-list-check"></i> App Credentials</NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/users" className="text-primary"><i className="bi bi-view-list"></i> View Users</NavDropdown.Item>
+                    <NavDropdown.Divider />
+                    <NavDropdown.Item as={Link} to="/add-credentials" className="text-primary"><i className="bi bi-list-check"></i> App Credentials</NavDropdown.Item>
                   </NavDropdown>
                 )}
-              {/* <Nav.Link as={Link} to="/register"><i className="bi bi-person-fill-add"></i> Add Users</Nav.Link> */}
-              {/* <NavDropdown title={<span><i className="bi bi-people-fill"></i> Users</span>} id="apps-fropdown">
-                  <NavDropdown.Item as={Link} to="/register"><i className="bi bi-person-fill-add"></i> Add New</NavDropdown.Item>
-                  <NavDropdown.Divider />
-                  <NavDropdown.Item as={Link} to="/users"><i className="bi bi-view-list"></i> View </NavDropdown.Item>
-                  <NavDropdown.Item as={Link} to="/add-credentials"><i className="bi bi-list-check"></i> App Credentials </NavDropdown.Item>
-              </NavDropdown> */}
-              {/* Dropdown Menu 1: User Account */}
-              <NavDropdown title={<span><i className="bi bi-person-circle"></i> Account</span>} id="account-fropdown">
-                  <NavDropdown.Item as={Link} to="/profile">
+              <NavDropdown title={<span className="text-white"><i className="bi bi-person-circle"></i> Account</span>} id="account-fropdown">
+                  <NavDropdown.Item as={Link} to="/profile" className="text-primary">
                     <i className="bi bi-person-badge-fill"></i> Profile
                   </NavDropdown.Item>
-                  {/* <NavDropdown.Item as={Link} to="/register">
-                  <i className="bi bi-person-fill-add"></i> Add User
-                  </NavDropdown.Item> */}
                   <NavDropdown.Divider />
-                  <NavDropdown.Item onClick={handleLogout}>
-                    {/* <Logout /> */}
+                  <NavDropdown.Item onClick={handleLogout} className="text-primary">
                     <i className="bi bi-box-arrow-right"></i> Logout
                   </NavDropdown.Item>
               </NavDropdown>
