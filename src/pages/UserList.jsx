@@ -17,6 +17,10 @@ const [showModal, setShowModal] = useState(false); // To control modal visibilit
 const [userFormData, setUserFormData] = useState({ name: '', email: '', mobile_number: '', role: '', is_active:'', password:'' }); // For editing user details
 const [showConfirmModal, setShowConfirmModal] = useState(false);
 // const [selectedUser, setSelectedUser] = useState(null);
+const [showCredentialsModal, setShowCredentialsModal] = useState(false);
+const [selectedUserCredentials, setSelectedUserCredentials] = useState([]);
+const [loadingCredentials, setLoadingCredentials] = useState(false);
+
 
 
   const loadUsers = async (page = 1) => {
@@ -53,7 +57,7 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const handleView = (user) => {
     setSelectedUser(user);
-    setUserFormData({ name: user.name, email: user.email, mobile_number: user.mobile_number, role: user.role, password:'' });
+    setUserFormData({ name: user.name, email: user.email, mobile_number: user.mobile_number, role: user.role, password:user.password });
     setShowModal(true); // Show the modal for user details
     // alert(`User Info:\nName: ${user.name}\nEmail: ${user.email}\nMobile: ${user.mobile_number}\nRole: ${user.role}`);
   };
@@ -118,6 +122,28 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
       setShowConfirmModal(false);
     }
   };
+
+  // To view user's app credentials
+  const handleViewCredentials = async (user) => {
+    setLoadingCredentials(true);
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/admin/user-credentials/${user.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        }
+      );
+      setSelectedUserCredentials(response.data);
+      setShowCredentialsModal(true);
+    } catch (error) {
+      console.error("Error fetching credentials:", error);
+      alert("Failed to fetch user credentials");
+    } finally {
+      setLoadingCredentials(false);
+    }
+  };
   
 
   return (
@@ -135,6 +161,7 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
         <th>Role</th>
         <th>Status</th>
         <th>Actions</th>
+        <th>App<br />Credentials</th>
       </tr>
     </thead>
     <tbody>
@@ -146,27 +173,14 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
           <td>{user.mobile_number}</td>
           <td>{user.role}</td>
           <td>
-              <Form.Check 
-                type="switch"
-                id={`toggle-${user.id}`}
-                // label={user.is_active ? "Active" : "Inactive"}
-                checked={user.is_active}
-                onChange={(e) => handleToggleStatus(user, e.target.checked)}
-              />
+              <Form.Check type="switch" id={`toggle-${user.id}`} checked={user.is_active} onChange={(e) => handleToggleStatus(user, e.target.checked)}/>
           </td>
           <td className="action-btns">
             {/* <Button variant="info" size="sm" className="me-2" onClick={() => handleView(user)} > */}
-            <i className="bi bi-eye-fill text-info me-3 view-icon" onClick={() => handleView(user)} role="button" style={{ cursor: "pointer", fontSize: "1.2rem" }}></i>
-            {/* </Button> */}
-            
-            {/* <Button
-              variant="danger"
-              size="sm"
-              onClick={() => handleDelete(user.id)}
-            > */}
-              {/* <i className="bi bi-trash-fill text-danger me-3 view-icon" onClick={() => handleDelete(user.id)} role="button" style={{ cursor: "pointer", fontSize: "1.2rem" }}></i> */}
-            {/* </Button> */}
-            
+            <i className="bi bi-eye-fill text-primary me-3 view-icon" onClick={() => handleView(user)} role="button" style={{ cursor: "pointer", fontSize: "1.2rem" }}></i>
+          </td>
+          <td className="action-btns">
+            <i className="bi bi-key-fill text-primary me-3" onClick={() => handleViewCredentials(user)} role="button" style={{ cursor: "pointer", fontSize: "1.2rem" }} title="View App Credentials"></i>
           </td>
         </tr>
       ))}
@@ -189,7 +203,7 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
       {/* Modal for Viewing/Editing User Details */}
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
-          <Modal.Title>{selectedUser ? `Edit ${selectedUser.name}` : "View User"}</Modal.Title>
+          <Modal.Title className="text-primary">{selectedUser ? `Edit ${selectedUser.name}` : "View User"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -226,10 +240,10 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
         </Modal.Body>
         <Modal.Footer>
           {selectedUser && (
-            <Button variant="secondary" onClick={handleCloseModal}>Close</Button>
+            <Button variant="primary" onClick={handleCloseModal}>Close</Button>
           )}
           {selectedUser && (
-            <Button variant="primary" onClick={handleSaveChanges}>Save Changes</Button>
+            <Button variant="outline-primary" onClick={handleSaveChanges}>Save Changes</Button>
           )}
         </Modal.Footer>
       </Modal>
@@ -241,14 +255,63 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
           Are you sure you want to deactivate <strong>{selectedUser?.name}</strong>?
         </Modal.Body>
         <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+            <Button variant="outline-primary" onClick={() => setShowConfirmModal(false)}>
               Cancel
             </Button>
-            <Button variant="danger" onClick={confirmDeactivation}>
+            <Button variant="outline-danger" onClick={confirmDeactivation}>
               Deactivate
             </Button>
         </Modal.Footer>
       </Modal>
+
+
+
+      {/* Credentials Modal */}
+        <Modal 
+          show={showCredentialsModal} 
+          onHide={() => setShowCredentialsModal(false)}
+          size="lg"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title className="text-primary">Application Credentials</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {loadingCredentials ? (
+              <div className="text-center">Loading credentials...</div>
+            ) : selectedUserCredentials.length === 0 ? (
+              <div className="text-center">No credentials found for this user</div>
+            ) : (
+              <Table striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Application</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedUserCredentials.map((cred, index) => (
+                    <tr key={index}>
+                      <td>{index + 1}</td>
+                      <td>{cred.app_name}</td>
+                      <td>{cred.username}</td>
+                      <td>{cred.password}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary" onClick={() => setShowCredentialsModal(false)}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+
+
 
     </>
   );

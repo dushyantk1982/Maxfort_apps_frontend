@@ -16,6 +16,8 @@ import LoginPage from "./pages/LoginPage";
 import UserList from "./pages/UserList";
 import UploadUsers from "./pages/UploadUsers";
 import AddAppCredentials from "./pages/AppCredentials";
+// import ViewAppCredentials from "./pages/ViewAppCredentials";
+import BulkAppCredentials from "./pages/BulkAppCredentials";
 
 
 function App() {
@@ -41,6 +43,7 @@ function App() {
               <Route path='/profile' element={< Profile />} />
               <Route path='/upload-users' element={< UploadUsers />} />
               <Route path='/add-credentials' element={< AddAppCredentials />} />
+              <Route path='/bulk-credentials' element={<BulkAppCredentials />} />
           </Route>
           <Route path='/forget-password' element={<ForgetPassword />} />
           <Route path="*" element= {<Navigate to="/login" />} />

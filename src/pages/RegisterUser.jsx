@@ -83,7 +83,7 @@ const RegisterUser = () => {
                     </form>
 
                     {message && <div className="alert alert-info mt-3 text-center">{message}</div>}
-                    <Button variant="outline-secondary" className="mt-3 w-100" onClick={() => navigate("/upload-users")}>
+                    <Button variant="outline-primary" className="mt-3 w-100" onClick={() => navigate("/upload-users")}>
                         Bulk Upload Users
                     </Button>
                 </div>

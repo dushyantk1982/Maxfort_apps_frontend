@@ -3,15 +3,20 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import API_BASE_URL from "../config";
 import CustomeNavbar from "../components/CustomeNavbar";
-
+import { Button } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
 const AddAppCredentials = () => {
-  const [userId, setUserId] = useState("");
-  const [users, setUsers] = useState([]);
-  const [applications, setApplications] = useState([]);
-  const [credentials, setCredentials] = useState([]);
+const [userId, setUserId] = useState("");
+const [users, setUsers] = useState([]);
+const [applications, setApplications] = useState([]);
+const [credentials, setCredentials] = useState([]);
+const [uploadFile, setUploadFile] = useState(null);
+const [uploadStatus, setUploadStatus] = useState(null);
+const [uploading, setUploading] = useState(false);
 //   (Array.from({length:6}, () => ({ app_id: "", username: "", password: "" })));
 const inputRefs = useRef([]);
+const navigate = useNavigate();
 
   // Fetch users and applications on load
   useEffect(() => {
@@ -72,6 +77,102 @@ const inputRefs = useRef([]);
       alert("Failed to add credentials");
     }
   };
+
+  // To download Excel file
+  const handleDownloadTemplate = async () => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/download-credentials-template`,
+        {
+          responseType: 'blob',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          }
+        }
+      );
+
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      
+      // Create a temporary link element
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'credentials_template.xlsx');
+      
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      // Clean up the URL
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading template:", error);
+      alert("Failed to download template");
+    }
+  };
+
+  // To upload Excel file
+  // const handleFileChange = (e) => {
+  //   const file = e.target.files[0];
+  //   if (file) {
+  //     setUploadFile(file);
+  //     setUploadStatus(null);
+  //   }
+  // };
+
+  // const handleBulkUpload = async (e) => {
+  //   e.preventDefault();
+  //   if (!uploadFile) {
+  //     setUploadStatus({
+  //       type: 'error',
+  //       message: 'Please select a file to upload'
+  //     });
+  //     return;
+  //   }
+
+  //   setUploading(true);
+  //   const formData = new FormData();
+  //   formData.append('file', uploadFile);
+
+  //   try {
+  //     const response = await axios.post(
+  //       `${API_BASE_URL}/bulk-upload-credentials`,
+  //       formData,
+  //       {
+  //         headers: {
+  //           'Content-Type': 'multipart/form-data',
+  //           Authorization: `Bearer ${localStorage.getItem("token")}`
+  //         }
+  //       }
+  //     );
+
+  //     setUploadStatus({
+  //       type: 'success',
+  //       message: `Upload completed. Successfully processed ${response.data.success_count} credentials. ${
+  //         response.data.error_count > 0 
+  //           ? `Failed to process ${response.data.error_count} credentials.` 
+  //           : ''
+  //       }`
+  //     });
+
+  //     if (response.data.errors) {
+  //       console.error('Upload errors:', response.data.errors);
+  //     }
+
+  //     // Clear the file input
+  //     setUploadFile(null);
+  //     e.target.reset();
+
+  //   } catch (error) {
+  //     setUploadStatus({
+  //       type: 'error',
+  //       message: error.response?.data?.detail || 'Failed to upload file'
+  //     });
+  //   } finally {
+  //     setUploading(false);
+  //   }
+  // };
 
   return (
 <>
@@ -142,12 +243,56 @@ const inputRefs = useRef([]);
     ))}
 
     <div className="text-center mt-4">
-      <button type="submit" className="btn btn-success px-5 py-2">
+      <button type="submit" className="btn btn-primary px-5 py-2">
         Submit Credentials
       </button>
     </div>
+    {/* <Button variant="outline-primary" onClick={handleDownloadTemplate} className="align-items-center mt-3">
+            <i className="bi bi-download me-2"></i>
+            Download Bulk Upload Template
+          </Button> */}
+    
+{/* To upload excel form */}
+    <Button variant="outline-primary" onClick={() => navigate('/bulk-credentials')} className="align-items-center mt-3">
+            <i className="bi bi-upload me-2"></i>
+            Bulk Upload Credentials
+          </Button>
   </form>
 </div>
+{/* Bulk Upload Section */}
+        {/* <div className="mb-4 p-3 border rounded">
+          <h4 className="mb-3">Bulk Upload Credentials</h4>
+          <Form onSubmit={handleBulkUpload}>
+            <Form.Group className="mb-3">
+              <Form.Label>Select Excel File</Form.Label>
+              <Form.Control
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleFileChange}
+                disabled={uploading}
+              />
+              <Form.Text className="text-muted">
+                Upload the filled template to add credentials in bulk
+              </Form.Text>
+            </Form.Group>
+            <Button 
+              type="submit" 
+              variant="primary" 
+              disabled={!uploadFile || uploading}
+            >
+              {uploading ? 'Uploading...' : 'Upload Credentials'}
+            </Button>
+          </Form>
+          
+          {uploadStatus && (
+            <Alert 
+              variant={uploadStatus.type === 'success' ? 'success' : 'danger'}
+              className="mt-3"
+            >
+              {uploadStatus.message}
+            </Alert>
+          )}
+        </div> */}
 
 
 

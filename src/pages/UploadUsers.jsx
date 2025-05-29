@@ -27,8 +27,8 @@ const UploadUsers = () => {
 
     // code to give sample file to upload
     const handleDownloadSample = () => {
-    // Create a sample Excel file URL
-    const sampleFileUrl = '/Sample_Users_List.xlsx'; // You'll need to add this file to your public folder
+    // Create a sample Excel file URL and need to add this file in my public folder
+    const sampleFileUrl = '/Sample_Users_List.xlsx'; 
     const link = document.createElement('a');
     link.href = sampleFileUrl;
     link.download = 'Sample_Users_List.xlsx';

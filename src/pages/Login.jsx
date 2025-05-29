@@ -185,7 +185,7 @@ const Login = () => {
                         <>
                             <input type='password' className='form-control mb-3' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)}/>
                             
-                            <button className="btn btn-success w-100" onClick={handlePasswordLogin}>Login</button>
+                            <button className="btn btn-primary w-100" onClick={handlePasswordLogin}>Login</button>
                             
                             <button className="btn btn-link mt-2" onClick={() => setLoginMethod('')}>Back</button>
                         </>
@@ -202,7 +202,7 @@ const Login = () => {
                         <>
                              <input className="form-control mb-3" placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
 
-                            <button className='btn btn-success w-100' onClick={handleVerifyOTP}>Verify OTP</button>
+                            <button className='btn btn-primary w-100' onClick={handleVerifyOTP}>Verify OTP</button>
 
                             <button className="btn btn-link mt-2" onClick={() => { setOtpSend(false); setOtp(""); }}>Resend</button>
                         </>

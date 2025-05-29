@@ -105,8 +105,8 @@ if (!profile) return <div>Loading...</div>;
                             <div className="text-center">
                                 {isEditing ? (
                                     <>
-                                        <Button variant="success" className="me-2" onClick={handleSave}>Save</Button>
-                                        <Button variant="danger" onClick={handleCancel}>Cancel</Button>
+                                        <Button variant="outline-primary" className="me-2" onClick={handleSave}>Save</Button>
+                                        <Button variant="outline-danger" onClick={handleCancel}>Cancel</Button>
 
                                     </>
                                 ) : (
