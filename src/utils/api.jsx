@@ -1,6 +1,5 @@
-// import API_BASE_URL from "../config";
-import axios from "axios";
 import API_BASE_URL from "../config";
+import axios from "axios";
 
 // To connect backend
 // const API_BASE_URL = "http://127.0.0.1:8000";
@@ -43,12 +42,20 @@ export const fetchProtectedData = async (endpoint, method = "GET", body = null) 
             method, headers,
             body: body ? JSON.stringify(body) : null,
         });
+        if (response.status === 401) {
+            console.warn("Token expired or invalid. Redirecting to login.");
+            localStorage.removeItem("token");
+            window.location.href = "/login";  // useNavigate won't work here unless inside a React component
+            return;
+        }
 
         if(!response.ok){
             throw new Error(`HTTP Error : ${response.status}`);
         }
-
+                
         return await response.json();
+
+        
 
     }catch(error){
         console.error("Error fetching protected data : ", error);
@@ -132,4 +139,54 @@ export const uploadUsers = async (file) => {
         console.error("Error fetching app credentials:", error);
         throw error;
     }
+};
+
+
+
+
+// Fetch notifications
+export const fetchNotifications = async (token) => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/view_notifications`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error("Failed to fetch notifications");
+  }
+};
+
+//  Create notification
+export const createNotification = async (message, token) => {
+  try {
+    const res = await axios.post(
+      `${API_BASE_URL}/add_notifications`,
+      { message }, // body
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    throw new Error("Failed to create notification");
+  }
+};
+
+//  Delete notification
+export const deleteNotification = async (id, token) => {
+  try {
+    const res = await axios.delete(`${API_BASE_URL}/delete_notifications/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error("Failed to delete notification");
+  }
 };

@@ -2,7 +2,7 @@ import {Container, Row, Col, Card, Modal, Button, Table} from "react-bootstrap";
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import CustomeNavbar from "../components/CustomeNavbar";
-import { fetchProtectedData, fetchUserAppCredentials } from "../utils/api";
+import { fetchProtectedData, fetchUserAppCredentials, fetchNotifications  } from "../utils/api";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { ToastContainer } from "react-toastify";
@@ -11,6 +11,9 @@ import Logout from "../components/Logout";
 import API_BASE_URL from "../config";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/Dashboard.css';
+// import NotificationPopup from "../components/NotificationPopup";
+// import '../css/Popup.css';
+
 
 const applications = [
     {name:"Microsoft Outlook", url:"https://outlook.office365.com/mail/", logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHg-9a54f3dr8FdBjk4E7_ORnM1UCfJTxSlw&s",supportsDirectLogin: false},
@@ -45,10 +48,16 @@ const Dashboard = () => {
   const [editingCredential, setEditingCredential] = useState(null);
   const [editFormData, setEditFormData] = useState({ username: '', password: '' });
   const [isUpdating, setIsUpdating] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [currentNotification, setCurrentNotification] = useState(null);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showPopup, setShowPopup] = useState(true);
+  // const [showNotificationModal, setShowNotificationModal] = useState(false);
+  // const [currentNotification, setCurrentNotification] = useState(null);
 
     useEffect(() => {
       const fetchProtectedData = async () => {
-        const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
         // console.log("Token:", token);
         
         if(!token){
@@ -72,11 +81,32 @@ const Dashboard = () => {
           const data = await response.json();
           // alert(data.message);
           setUserData(data);
+
+          // To show notification
+          // fetchNotifications(token).then((data) => {
+          //     setNotifications(data);
+          //     if (data.length > 0) {
+          //       setShowPopup(true);
+          //     }
+          //  })
+          // .catch(console.error);
+          fetchNotifications(token)
+          .then((data) => {
+            setNotifications(data);
+            if (data.length > 0) {
+              setCurrentNotification(data[0]);
+              setShowNotificationModal(true);
+            }
+          })
+          .catch(console.error);
+
+
         }catch(error){
           console.error("Error fetching protected data: ", error);
         }
       };
       fetchProtectedData();
+      
     }, []);
 
     const handleVaultClick = async () =>
@@ -253,13 +283,7 @@ const handleSaveEdit = async () => {
       return;
     }
 
-    // console.log("Updating credential for:", {
-    //   email: userEmail,
-    //   app: editingCredential.app_name,
-    //   username: editFormData.username,
-    //   password: editFormData.password
-    // });
-    
+       
     const response = await axios.put(
       `${API_BASE_URL}/update-credential/${userEmail}/${editingCredential.app_name}`,
       {
@@ -341,10 +365,30 @@ const handleSaveEdit = async () => {
     setIsUpdating(false);
   }
 };
-       
+
+// To close the notification popup
+const handleClose = () => {
+    // if (currentNotification) {
+    //   markNotificationAsRead(currentNotification.id);
+    // }
+    setShowNotificationModal(false);
+
+    const currentIndex = notifications.findIndex(
+      (n) => n.id === currentNotification.id
+    );
+    if (currentIndex < notifications.length - 1) {
+      setTimeout(() => {
+        setCurrentNotification(notifications[currentIndex + 1]);
+        setShowNotificationModal(false);
+      }, 100); // show next after closing current
+    }
+  };
+   
+
 
   return (
     <>
+    
     <CustomeNavbar />
     {userData && <p>{userData.message}</p>}
     <Container className="container mt-4 shadow p-4" style={{height:"100vh"}}>
@@ -464,6 +508,34 @@ const handleSaveEdit = async () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="primary" onClick={() => setShowVault(false)}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+{/* This model is to display the notifications */}
+
+<Modal
+        show={showNotificationModal}
+        onHide={handleClose}
+        centered
+      >
+        <Modal.Header closeButton className="bg-primary text-white">
+          <Modal.Title>New Notification</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {currentNotification && (
+            <>
+              <h5>{currentNotification.title}</h5>
+              <p>{currentNotification.message}</p>
+              <small className="text-muted">
+                {new Date(currentNotification.created_at).toLocaleString()}
+              </small>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={handleClose}>
             Close
           </Button>
         </Modal.Footer>

@@ -20,6 +20,7 @@ import AddAppCredentials from "./pages/AppCredentials";
 import BulkAppCredentials from "./pages/BulkAppCredentials";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import NotificationManagement from "./pages/NotificationManagement";
 
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
               <Route path='/upload-users' element={< UploadUsers />} />
               <Route path='/add-credentials' element={< AddAppCredentials />} />
               <Route path='/bulk-credentials' element={<BulkAppCredentials />} />
+              <Route path='/notifications' element={<NotificationManagement />} />
           </Route>
           <Route path='/forget-password' element={<ForgetPassword />} />
           <Route path="*" element= {<Navigate to="/login" />} />

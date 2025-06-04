@@ -11,10 +11,38 @@ const CustomeNavbar = () => {
 
   const navigate = useNavigate();
   const [role, setRole] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const storedRole = localStorage.getItem("role");
     setRole(storedRole);
+
+    // Code to display the notifications
+    const fetchUnreadCount = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const userId = JSON.parse(localStorage.getItem("userData"))?.user?.id;
+      
+      if (!userId) return;
+
+      const response = await fetch(`${API_BASE_URL}/notifications/${userId}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch notifications");
+      
+      const data = await response.json();
+      const unreadNotifications = data.filter(n => n.is_active && !n.is_read);
+      setUnreadCount(unreadNotifications.length);
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+    }
+  };
+
+  fetchUnreadCount();
+    
   }, []);
 
   const handleLogout = () =>{
@@ -41,6 +69,14 @@ const CustomeNavbar = () => {
         <Navbar.Collapse id="navbar-nav">
             <Nav className="ms-auto">
               <Nav.Link as={Link} to="/dashboard" className="text-white"><i className="bi bi-house-door-fill"></i> Dashboard</Nav.Link>
+              <Nav.Link as={Link} to="/dashboard" className="text-white position-relative">
+                      <i className="bi bi-bell-fill"></i>
+                      {unreadCount > 0 && (
+                        <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                          {unreadCount}
+                        </span>
+                      )}
+              </Nav.Link>
               {/* Conditionally render Users dropdown if role is admin */}
                 {role === "admin" && (
                   <NavDropdown title={<span className="text-white"><i className="bi bi-people-fill"></i> Users</span>} id="apps-dropdown">
@@ -49,6 +85,7 @@ const CustomeNavbar = () => {
                     <NavDropdown.Item as={Link} to="/users" className="text-primary"><i className="bi bi-view-list"></i> View Users</NavDropdown.Item>
                     <NavDropdown.Divider />
                     <NavDropdown.Item as={Link} to="/add-credentials" className="text-primary"><i className="bi bi-list-check"></i> App Credentials</NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/notifications" className="text-primary"><i class="bi bi-send"></i> Create Notification</NavDropdown.Item>
                   </NavDropdown>
                 )}
               <NavDropdown title={<span className="text-white"><i className="bi bi-person-circle"></i> Account</span>} id="account-fropdown">
