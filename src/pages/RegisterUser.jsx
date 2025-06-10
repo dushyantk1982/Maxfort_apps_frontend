@@ -30,13 +30,24 @@ const RegisterUser = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Simple frontend validation
+  if (!/^[\w\.-]+@[\w\.-]+\.\w+$/.test(formData.email)) {
+    setMessage("Invalid email format");
+    return;
+  }
+
+  if (!/^\d{10}$/.test(formData.mobile_number)) {
+    setMessage("Mobile number must be 10 digits");
+    return;
+  }
+
     try {
         const response = await registerUser(formData);
         setMessage("User registered successfully!");
         setFormData({ name: "", email: "", mobile_number: "", password: "", role: "user" });
     } catch (error) {
       console.error(error);
-      setMessage(error.message);
+      setMessage(error.response?.data?.detail || error.message);
     }
   };
 
@@ -66,7 +77,7 @@ const RegisterUser = () => {
 
                     <div className="mb-3">
                         <label className="form-label text-start fw-bold d-block">Password</label>
-                        <input type="password" name="password" className="form-control" required value={formData.password} onChange={handleChange} />
+                        <input type="password" name="password" className="form-control" autoComplete="yes" required value={formData.password} onChange={handleChange} />
                     </div>
 
                     <div className="mb-3">

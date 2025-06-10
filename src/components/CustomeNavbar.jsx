@@ -69,14 +69,14 @@ const CustomeNavbar = () => {
         <Navbar.Collapse id="navbar-nav">
             <Nav className="ms-auto">
               <Nav.Link as={Link} to="/dashboard" className="text-white"><i className="bi bi-house-door-fill"></i> Dashboard</Nav.Link>
-              <Nav.Link as={Link} to="/dashboard" className="text-white position-relative">
+              {/* <Nav.Link as={Link} to="/dashboard" className="text-white position-relative">
                       <i className="bi bi-bell-fill"></i>
                       {unreadCount > 0 && (
                         <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                           {unreadCount}
                         </span>
                       )}
-              </Nav.Link>
+              </Nav.Link> */}
               {/* Conditionally render Users dropdown if role is admin */}
                 {role === "admin" && (
                   <NavDropdown title={<span className="text-white"><i className="bi bi-people-fill"></i> Users</span>} id="apps-dropdown">
@@ -85,7 +85,7 @@ const CustomeNavbar = () => {
                     <NavDropdown.Item as={Link} to="/users" className="text-primary"><i className="bi bi-view-list"></i> View Users</NavDropdown.Item>
                     <NavDropdown.Divider />
                     <NavDropdown.Item as={Link} to="/add-credentials" className="text-primary"><i className="bi bi-list-check"></i> App Credentials</NavDropdown.Item>
-                    <NavDropdown.Item as={Link} to="/notifications" className="text-primary"><i class="bi bi-send"></i> Create Notification</NavDropdown.Item>
+                    <NavDropdown.Item as={Link} to="/notifications" className="text-primary"><i className="bi bi-send"></i> Create Notification</NavDropdown.Item>
                   </NavDropdown>
                 )}
               <NavDropdown title={<span className="text-white"><i className="bi bi-person-circle"></i> Account</span>} id="account-fropdown">
