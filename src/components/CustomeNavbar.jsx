@@ -7,8 +7,7 @@ import Logout from "./Logout";
 
 const CustomeNavbar = () => {
 
-  // console.log("Rendering CustomeNavbar...");
-
+  
   const navigate = useNavigate();
   const [role, setRole] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -49,6 +48,7 @@ const CustomeNavbar = () => {
     // localStorage.removeItem("token");
     // navigate("/login");
     localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
     localStorage.removeItem("role");
         navigate("/login");
   };  
@@ -69,14 +69,6 @@ const CustomeNavbar = () => {
         <Navbar.Collapse id="navbar-nav">
             <Nav className="ms-auto">
               <Nav.Link as={Link} to="/dashboard" className="text-white"><i className="bi bi-house-door-fill"></i> Dashboard</Nav.Link>
-              {/* <Nav.Link as={Link} to="/dashboard" className="text-white position-relative">
-                      <i className="bi bi-bell-fill"></i>
-                      {unreadCount > 0 && (
-                        <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                          {unreadCount}
-                        </span>
-                      )}
-              </Nav.Link> */}
               {/* Conditionally render Users dropdown if role is admin */}
                 {role === "admin" && (
                   <NavDropdown title={<span className="text-white"><i className="bi bi-people-fill"></i> Users</span>} id="apps-dropdown">

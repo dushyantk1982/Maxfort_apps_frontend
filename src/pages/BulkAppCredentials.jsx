@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import axios from "axios";
 import API_BASE_URL from "../config";
 import CustomeNavbar from "../components/CustomeNavbar";
-import { Button, Form, Alert, Container } from "react-bootstrap";
+import { Button, Form, Alert, Container, Spinner } from "react-bootstrap";
 
 const BulkAppCredentials = () => {
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleDownloadTemplate = async () => {
     try {
@@ -47,12 +48,14 @@ const BulkAppCredentials = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
+
     if (file) {
       setUploadFile(file);
       setUploadStatus(null);
     }
   };
 
+  // Function to Upload File
   const handleBulkUpload = async (e) => {
     e.preventDefault();
     if (!uploadFile) {
@@ -79,36 +82,21 @@ const BulkAppCredentials = () => {
         }
       );
 
-        let message = `Upload completed. Successfully processed ${response.data.success_count} credentials.`;
-      
-        if (response.data.error_count > 0) {
-            message += `\nFailed to process ${response.data.error_count} credentials.`;
-            if (response.data.errors) {
-                message += '\n\nErrors:\n' + response.data.errors.join('\n');
-            }
-        }
+      const { success_count, error_count, errors } = response.data;
 
-    //   setUploadStatus({
-    //     type: 'success',
-    //     message: `Upload completed. Successfully processed ${response.data.success_count} credentials. ${
-    //       response.data.error_count > 0 
-    //         ? `Failed to process ${response.data.error_count} credentials.` 
-    //         : ''
-    //     }`
-    //   });
-
+      let message = `Upload completed.\nSuccessfully processed: ${success_count}\nFailed: ${error_count}`;
         setUploadStatus({
-            type: response.data.error_count > 0 ? 'warning' : 'success',
-            message: message
+          type: error_count > 0 ? "warning" : "success",
+          message,
+          errors: Array.isArray(errors) ? errors : [],
         });
-
-    //   if (response.data.errors) {
-    //     console.error('Upload errors:', response.data.errors);
-    //   }
 
       // Clear the file input
       setUploadFile(null);
       e.target.reset();
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
 
     } catch (error) {
       setUploadStatus({
@@ -127,14 +115,6 @@ const BulkAppCredentials = () => {
         <div className="bg-white p-4 shadow rounded">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h2 className="text-primary">Bulk Upload Application Credentials</h2>
-            {/* <Button 
-              variant="success" 
-              onClick={handleDownloadTemplate}
-              className="d-flex align-items-center"
-            >
-              <i className="bi bi-download me-2"></i>
-              Download Template
-            </Button> */}
           </div>
 
           <div className="mb-4">
@@ -155,47 +135,79 @@ const BulkAppCredentials = () => {
                 accept=".xlsx,.xls"
                 onChange={handleFileChange}
                 disabled={uploading}
+                ref={fileInputRef}
               />
               <Form.Text className="text-muted">
                 Upload the filled template to add credentials in bulk
               </Form.Text>
             </Form.Group>
             <Button type="submit" variant="primary" disabled={!uploadFile || uploading} className="me-2" >
-              {uploading ? 'Uploading...' : 'Upload Credentials'}
+              {/* {uploading ? 'Uploading...' : 'Upload Credentials'} */}
+              {uploading ? (
+                  <>
+                    <Spinner animation="border" size="sm" className="me-2" />
+                    Uploading...
+                  </>
+                ) : (
+                  'Upload Credentials'
+                )}
             </Button>
             <Button variant="outline-primary" onClick={() => window.history.back()}>
               Back to Single Upload
             </Button>
           </Form>
+          
           <Button variant="info" onClick={handleDownloadTemplate} className="align-items-center mt-3">
               <i className="bi bi-download me-2"></i>
               Download Template
             </Button>
-          {/* {uploadStatus && (
-            <Alert 
-              variant={uploadStatus.type === 'success' ? 'success' : 'danger'}
-              className="mt-3"
-            >
-              {uploadStatus.message}
-            </Alert>
-          )} */}
 
-           {uploadStatus && (
-            <Alert 
-              variant={uploadStatus.type === 'success' ? 'success' : 
-                      uploadStatus.type === 'warning' ? 'warning' : 'danger'}
-              className="mt-3"
-            >
-              {uploadStatus.message.split('\n').map((line, i) => (
-                <React.Fragment key={i}>
-                  {line}
-                  <br />
-                </React.Fragment>
-              ))}
-            </Alert>
-          )}
-          
+            {/*Alert to display the file upload status  */}
+            {uploadStatus && (
+                <Alert
+                  variant={uploadStatus.type === "success" ? "success" : "danger"}
+                  style={{ margin: 10, backgroundColor: "#FCEBEB", border: "none", color: "#000" }}
+                  onClose={() => setUploadStatus(null)}
+                  dismissible
+                >
+                  {uploadStatus.message.split('\n').map((line, idx) => (
+                    <div key={idx}>{line}</div>
+                  ))}
+                </Alert>
+              )}
         </div>
+        {/* Show errors in table if present */}
+    {/* {uploadStatus.type !== 'success' && uploadStatus.errors && ( */}
+    {uploadStatus && uploadStatus.type !== 'success' && Array.isArray(uploadStatus.errors) && uploadStatus.errors.length > 0 && (
+      <div className="mt-4">
+        <h5>Failed Records</h5>
+        <div className="table-responsive">
+          <table className="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Row</th>
+                <th>User</th>
+                <th>Application</th>
+                <th>Username</th>
+                <th>Error</th>
+              </tr>
+            </thead>
+            <tbody>
+              {uploadStatus.errors.map((err, idx) => (
+                <tr key={idx}>
+                  <td>{err.row}</td>
+                  <td>{err.user_name}</td>
+                  <td>{err.application_name}</td>
+                  <td>{err.username}</td>
+                  <td>{err.error}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div> 
+     )}
+          
       </Container>
     </>
   );

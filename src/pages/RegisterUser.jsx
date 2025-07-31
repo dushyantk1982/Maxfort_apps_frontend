@@ -6,8 +6,9 @@ import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { registerUser } from "../utils/api";
 import UploadUsers from "./UploadUsers";
+import API_BASE_URL from "../config";
 // import "./RegisterUser.css"; // optional, if you want to include additional custom styles
-const API_BASE_URL = "http://127.0.0.1:8000";
+// const API_BASE_URL = "http://127.0.0.1:8000";
 
 const RegisterUser = () => {
   const [formData, setFormData] = useState({
@@ -30,7 +31,7 @@ const RegisterUser = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Simple frontend validation
+  // Simple frontend validation
   if (!/^[\w\.-]+@[\w\.-]+\.\w+$/.test(formData.email)) {
     setMessage("Invalid email format");
     return;

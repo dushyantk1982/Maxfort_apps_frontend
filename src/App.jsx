@@ -21,6 +21,7 @@ import BulkAppCredentials from "./pages/BulkAppCredentials";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import NotificationManagement from "./pages/NotificationManagement";
+import PrivateRoute from './components/PrivateRoute';
 
 
 function App() {
@@ -35,7 +36,8 @@ function App() {
           <Route path='/login' element={<Login />}/>
           <Route path="/unauthorized" element={<h2>Unauthorized Access</h2>} />
           <Route element={<ProtectedRoute allowedRoles={["user", "admin", "student", "teacher"]} />}>
-              <Route path='/dashboard' element={<Dashboard />}/>
+              {/* <Route path='/dashboard' element={<Dashboard />}/> */}
+              <Route path='/dashboard' element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
               {/* <Route path='/createApp' element={<CreateApps />}/> */}
               <Route path='/profile' element={< Profile />} />
           </Route>

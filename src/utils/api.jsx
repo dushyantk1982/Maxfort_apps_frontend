@@ -1,10 +1,6 @@
 import API_BASE_URL from "../config";
 import axios from "axios";
 
-// To connect backend
-// const API_BASE_URL = "http://127.0.0.1:8000";
-
-
 // To send otp 
 export const sendOTP = async (username, password) => {
     const response = await fetch(`${API_BASE_URL}/send-otp`, {
@@ -30,7 +26,7 @@ export const fetchProtectedData = async (endpoint, method = "GET", body = null) 
 
     const token = localStorage.getItem("token");
 
-    console.log("Token: ", token);
+    // console.log("Token: ", token);
 
     const headers = {
         "Authorization" : `Bearer ${token}`,
@@ -80,10 +76,21 @@ export const registerUser = async (formData) => {
   };
 
 //To get users details from database
-  export const fetchUsers = async (page = 1, perPage = 15) => {
-    const response = await axios.get(`${API_BASE_URL}/users?page=${page}&per_page=${perPage}`);
-    return response.data;
-  };
+  export const fetchUsers = async (page = 1, perPage = 15, search_filter = '', user_filter = {}) => {
+  const response = await axios.get(`${API_BASE_URL}/users`, {
+    params: {
+      page,
+      per_page: perPage,
+      ...(search_filter && { search_filter }),  // only add 'q' if not empty
+      ...(user_filter.employee_code && {employee_code: user_filter.employee_code}),
+      ...(user_filter.admission_no && {admission_no: user_filter.admission_no}),
+      ...(user_filter.class_name && {class_name: user_filter.class_name}),
+      ...(user_filter.section && {section: user_filter.section}),
+      ...(user_filter.user_role && { user_role: user_filter.user_role }),
+    }
+  });
+  return response.data;
+};
   
 //To Edit user
   export const updateUser = async (id, userData) => {
@@ -158,12 +165,21 @@ export const fetchNotifications = async (token) => {
   }
 };
 
+// Fetch Users to notification
+export const fetchUsersBySearch = async (query, token) => {
+  const res = await fetch(`${API_BASE_URL}/users/search?query=${query}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error("User search failed");
+  return res.json();
+};
+
 //  Create notification
-export const createNotification = async (message, token) => {
+export const createNotification = async ({ message, user_ids }, token) => {
   try {
     const res = await axios.post(
       `${API_BASE_URL}/add_notifications`,
-      { message }, // body
+      { message, user_ids }, // body
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -190,3 +206,24 @@ export const deleteNotification = async (id, token) => {
     throw new Error("Failed to delete notification");
   }
 };
+
+
+
+// Check existing email for login 
+export const checkEmailExists = async (email) => {
+  const res = await fetch(`${API_BASE_URL}/check-email`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.detail || "Error checking email");
+  }
+
+  return await res.json();
+};
+

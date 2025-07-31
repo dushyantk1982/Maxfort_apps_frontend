@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { sendOTP, verifyOTP } from '../utils/api';
+import { sendOTP, verifyOTP, checkEmailExists  } from '../utils/api';
 import React from 'react'
 import "bootstrap/dist/css/bootstrap.min.css";
 import {jwtDecode} from "jwt-decode";
 import API_BASE_URL from '../config';
+
 
 const Login = () => {
     const[username, setUsername] = useState("");
@@ -14,18 +15,22 @@ const Login = () => {
     const[otpSend, setOtpSend] = useState(false);
     const[error, setError] = useState("");
     const navigate = useNavigate();
+    const isValidEmail = (email) => /^[\w\.-]+@[\w\.-]+\.\w+$/.test(email);
 
     const handleSendOtp = async () =>{
+    
+      if (!isValidEmail(username)) {
+        setError("Invalid email format");
+        return;
+      }
         setError("");
         try{
             const res = await sendOTP(username);
-            // console.log("OTP Response", res);
             if(res.success){
                 setOtpSend(true);
 
                  // Show OTP in alert
                 alert(`Test OTP: ${res.otp}`);
-                // console.log("OTP Response", otp);
             }
             else{
                 setError(res.detail || "Failed to send OTP");
@@ -39,71 +44,43 @@ const Login = () => {
 
     const handleVerifyOTP = async () => {
         setError('');
+        if (!isValidEmail(username)) {
+          setError("Invalid email format");
+          return;
+        }
         try {
           const res = await verifyOTP(username, otp);
-        //   console.log('Verify OTP Response:', res);
-        //   console.log('Role is :',role);
           if (res.access_token) {
             // Store the token
             localStorage.setItem('token', res.access_token);
-            // console.log('Token Stored:', res.access_token);
-
+          
             // Decode the token to extract role
             const decodedToken = jwtDecode(res.access_token);
-            // console.log("Decoded Token:", decodedToken);
-
-            // console.log("Role is : ",role);
+          
             const userRole = decodedToken?.role || "user";
             localStorage.setItem("role", userRole);
-            // console.log("User Role Stored:", userRole);
-
             // Navigate to dashboard
-            // console.log("Navigate to Dashboard......");
             navigate('/dashboard');
-          } else {
+          } 
+          else {
             setError(res.detail || 'Invalid/Expired OTP');
           }
         } catch (err) {
           setError('Something went wrong');
         }
       };
-    // const handleSubmit = async (e) =>{
-    //     e.preventDefault();
-    //     // ToDo Call backend for authentication (LDAP/Google secure LDAP)
-    //     localStorage.setItem("token", "sample-token");
-    //     // console.log("Logging in with : ", email, password);
-    //     navigate("/dashboard"); 
-    // }
-
-    // const handleLogin = async (e) => {
-
-    //     e.preventDefault();
-     
-    //     const response = await fetch(`${API_BASE_URL}/token`, {
-    //         method : "POST",
-    //         headers : {"Content-Type" : "application/json"},
-    //         body : JSON.stringify({username, password}),
-    //         // headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    //         // body: new URLSearchParams({ username, password }),
-    //     });
-
-    //     const data = await response.json();
-    //     if(response.ok){
-    //         localStorage.setItem("token", data.access_token);
-
-    //          // Decode JWT to get user role
-    //         //  const decodedToken = JSON.parse(atob(data.access_token.split(".")[1]));
-    //         const decodedToken = jwtDecode(data.access_token);
-    //          localStorage.setItem("role", decodedToken.role);
-    //         navigate("/dashboard");
-    //     }
-    //     else{
-    //         alert("Invalid Credentials");
-    //     }
-    // };
+    
 
     // Login with password
-    const handlePasswordLogin = async () => {
+    const handlePasswordLogin = async (e) => {
+      e.preventDefault();
+
+       // Simple frontend validation
+      if (!isValidEmail(username)) {
+        setError("Invalid email format");
+        return;
+      }
+
     try {
       const response = await fetch(`${API_BASE_URL}/auth/token`, {
         method: 'POST',
@@ -111,6 +88,7 @@ const Login = () => {
         body: JSON.stringify({ username: username, password }),
       });
       const data = await response.json();
+
       if (response.ok) {
         localStorage.setItem("token", data.access_token);
         const decoded = jwtDecode(data.access_token);
@@ -124,46 +102,34 @@ const Login = () => {
     }
   };
 
+
+  // To check JWT token securely and check it automatically on application load
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      const exp = decoded.exp * 1000;
+      if (Date.now() < exp) {
+        navigate("/dashboard");
+      } else {
+        // localStorage.removeItem("token"); // expired
+
+        localStorage.setItem('refresh_token', res.refresh_token);
+        const decodedToken = jwtDecode(res.access_token);
+        const userRole = decodedToken?.role || "user";
+        localStorage.setItem("role", userRole);
+        navigate('/dashboard');
+
+      }
+    } catch (e) {
+      localStorage.removeItem("token");
+    }
+  }
+}, []);
+
   return (
     <>
-        {/* <div className="d-flex align-items-center justify-content-center vh-100" style={{ background: "linear-gradient(to right, #6a11cb, #2575fc)" }}>
-             <div className="card p-4 shadow" style={{ width: 400 }}>
-                <h2 className="text-center text-primary mb-4">Maxfort Apps</h2>
-
-                {!loginMethod && (
-                <>
-                    <input className="form-control mb-3" type="email" placeholder="Enter email" value={username} onChange={(e) => setEmail(e.target.value)} />
-                    <button className="btn btn-primary w-100 mb-2" onClick={() => setLoginMethod('password')} disabled={!username}>Login with Password</button>
-                    <button className="btn btn-outline-primary w-100" onClick={() => setLoginMethod('otp')} disabled={!username}>Login with OTP</button>
-                </>
-        )}
-
-        {loginMethod === 'password' && (
-          <>
-            <input className="form-control mb-3" type="password" placeholder="Enter password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            <button className="btn btn-success w-100" onClick={handlePasswordLogin}>Login</button>
-            <button className="btn btn-link mt-2" onClick={() => setLoginMethod('')}>Back</button>
-          </>
-        )}
-
-        {loginMethod === 'otp' && !otpSent && (
-          <>
-            <button className="btn btn-warning w-100" onClick={handleSendOtp}>Send OTP</button>
-            <button className="btn btn-link mt-2" onClick={() => setLoginMethod('')}>Back</button>
-          </>
-        )}
-
-        {loginMethod === 'otp' && otpSent && (
-          <>
-            <input className="form-control mb-3" placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
-            <button className="btn btn-success w-100" onClick={handleVerifyOtp}>Verify OTP</button>
-            <button className="btn btn-link mt-2" onClick={() => { setOtpSent(false); setOtp(""); }}>Resend</button>
-          </>
-        )}
-
-        {error && <div className="alert alert-danger mt-3">{error}</div>}
-      </div>
-    </div> */}
         <div className='d-flex align-items-center justify-content-center vh-100 bg-gradient' style={{background: "linear-gradient(to right, #6a11cb, #2575fc)", borderRadius:"10px", width:"450px"}}>
             <div className='card shadow-lg p-4' style={{macWidth:"400px", width:"100%", borderRadius:"10px"}}>
                 <div className='text-center mb-3'>
@@ -172,62 +138,97 @@ const Login = () => {
                    {/* Select Login method */}
                     {!loginMethod && (
                         <>
-                            <input type="text" className='form-control mb-3' placeholder='Email' value={username} onChange={(e) => setUsername(e.target.value)} />
-                            
-                            <button className="btn btn-primary w-100 mb-2" onClick={() => setLoginMethod('password')} disabled={!username}>Login with Password</button>
-                            
-                            <button className="btn btn-outline-primary w-100" onClick={()=> {handleSendOtp(); setLoginMethod('otp'); }} disabled={!username}>Login with OTP</button>
+                            <input type="text"
+                                className={`form-control mb-3 ${username && !isValidEmail(username) ? 'is-invalid' : ''}`}
+                                placeholder="Email" tabIndex={1}
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                onBlur={() => {
+                                    if (username && !isValidEmail(username)) {
+                                        setError("Invalid email format");
+                                    } else {
+                                        setError("");
+                                    }
+                                }}
+                                onKeyDown={async (e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        if (!isValidEmail(username)) {
+                                            setError("Invalid email format");
+                                        } else {
+                                          try{
+                                            await checkEmailExists(username);  // Check if email exists
+                                            setError("");
+                                            setLoginMethod('password');       // Proceed to password login
+                                           } catch (err) {
+                                              setError(err.message);            // Show "Email not found"
+                                           }
+                                        }
+                                    }
+                                }}
+                              />
+
+                            <button
+                              className="btn btn-primary w-100 mb-2"
+                              onClick={async () => {
+                                  try {
+                                    await checkEmailExists(username);
+                                    setError("");
+                                    setLoginMethod('password');
+                                  } catch (err) {
+                                    setError(err.message);
+                                  }
+                                }}
+                              disabled={!username}
+                            >
+                              Login with Password
+                            </button>
+
+                            <button
+                              className="btn btn-outline-primary w-100"
+                              onClick={async () => {
+                                try {
+                                  await checkEmailExists(username);
+                                  handleSendOtp();
+                                  setLoginMethod('otp');
+                                } catch (err) {
+                                  setError(err.message);
+                                }
+                              }}
+                              disabled={!username}
+                            >
+                              Login with OTP
+                            </button>
                         </>
                     )}
 
                     {/* Login methos is password */}
                     {loginMethod === 'password' && (
                         <>
-                            <input type='password' className='form-control mb-3' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)}/>
-                            
-                            <button className="btn btn-primary w-100" onClick={handlePasswordLogin}>Login</button>
-                            
+                           <form onSubmit={handlePasswordLogin}>
+                            <input type='password' className='form-control mb-3' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} autoComplete='true' />
+                            <button className="btn btn-primary w-100">Login</button>
                             <button className="btn btn-link mt-2" onClick={() => setLoginMethod('')}>Back</button>
+                            </form>
                         </>
                     )}
 
-                    {/* {loginMethod === 'otp' && !otpSend && (
-                        <>
-                            <button className="btn btn-warning w-100" onClick={handleSendOtp}>Send OTP</button>
-                            <button className="btn btn-link mt-2" onClick={() => setLoginMethod('')}>Back</button>
-                        </>
-                    )} */}
-
+                   
                     {loginMethod === 'otp' && otpSend && (
                         <>
-                             <input className="form-control mb-3" placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
-
-                            <button className='btn btn-primary w-100' onClick={handleVerifyOTP}>Verify OTP</button>
+                          <form onSubmit={(e) => {e.preventDefault(); handleVerifyOTP(); }}>
+                            <input className="form-control mb-3" placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} />
+                            
+                            <button className='btn btn-primary w-100' type='submit'>Verify OTP</button>
 
                             <button className="btn btn-link mt-2" onClick={() => { setOtpSend(false); setOtp(""); }}>Resend</button>
+                            <button className="btn btn-link mt-2" onClick={() => setLoginMethod('')}>Back</button>
+                          </form>
                         </>
                     )}
                     {error && <div className="alert alert-danger mt-3">{error}</div>}
                     
-                    {/* { !otpSend ? (
-                        <>
-                            <div className='mb3'>
-                                <input type="text" className='form-control' placeholder='Email' value={username} onChange={(e) => setUsername(e.target.value)} />
-                            </div>
-                            <div className='mb-3'>
-                                <input type='password' className='form-control' placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)}/>
-                            </div>        
-                            <button className='btn btn-primary w-100' onClick={handleSendOtp}>Send OTP</button>
-                        </>
-                        ):(
-                            <>
-                                <div className='mb-3'>
-                                    <input type="text" className='form-control' placeholder='Enter OTP' value={otp} onChange={(e) => setOtp(e.target.value)}/>
-                                </div>
-                                <button className='btn btn-success w-100' onClick={handleVerifyOTP}>Verify OTP</button>
-                            </>
-                            )}
-                            {error && <div className='alert alert-danger mt-3'>{error}</div>} */}
+                    
                 </div>
             </div>
         </div>

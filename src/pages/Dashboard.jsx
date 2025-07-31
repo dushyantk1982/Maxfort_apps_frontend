@@ -11,8 +11,7 @@ import Logout from "../components/Logout";
 import API_BASE_URL from "../config";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/Dashboard.css';
-// import NotificationPopup from "../components/NotificationPopup";
-// import '../css/Popup.css';
+// import { refreshAccessToken } from "../utils/auth";
 
 
 const applications = [
@@ -52,13 +51,13 @@ const Dashboard = () => {
   const [currentNotification, setCurrentNotification] = useState(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showPopup, setShowPopup] = useState(true);
-  // const [showNotificationModal, setShowNotificationModal] = useState(false);
-  // const [currentNotification, setCurrentNotification] = useState(null);
+  const [showWhatsapp, setShowWhatsapp] = useState(false);
+  const whatsappNumber = "+91 8743867970";
+
 
     useEffect(() => {
       const fetchProtectedData = async () => {
       const token = localStorage.getItem("token");
-        // console.log("Token:", token);
         
         if(!token){
           console.error("No token found");
@@ -73,23 +72,15 @@ const Dashboard = () => {
               "Content-Type" : "application/json"
             }
           });
-          
+
           if(!response.ok){
             throw new Error(`HTTP Error : ${response.status}`);
           }
           
           const data = await response.json();
-          // alert(data.message);
           setUserData(data);
 
           // To show notification
-          // fetchNotifications(token).then((data) => {
-          //     setNotifications(data);
-          //     if (data.length > 0) {
-          //       setShowPopup(true);
-          //     }
-          //  })
-          // .catch(console.error);
           fetchNotifications(token)
           .then((data) => {
             setNotifications(data);
@@ -111,7 +102,6 @@ const Dashboard = () => {
 
     const handleVaultClick = async () =>
     {
-        // console.log("Vault button clicked");
         const token = localStorage.getItem("token");
         const userId = userData?.user?.id;
         if (!userId) 
@@ -126,15 +116,11 @@ const Dashboard = () => {
         
             if(!response.ok) throw new Error("Failed to fetch credentials");
             const data = await response.json();
-            // console.log("Protected Data: ", data);
             setVaultData(data);
             setShowVault(true);
             
             // Check if extension is available
             const isExtensionAvailable = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage;
-            // console.log("Chrome runtime available:", typeof chrome !== 'undefined');
-            // console.log("Chrome runtime object:", chrome?.runtime ? "Yes" : "No");
-            // console.log("Chrome sendMessage available:", chrome?.runtime?.sendMessage ? "Yes" : "No");
             // // Send credentials to the Chrome Extension
             if (isExtensionAvailable) {
                 try
@@ -318,13 +304,7 @@ const handleSaveEdit = async () => {
         
             const appKey = APP_KEY_MAP[editingCredential.app_name];
             if (appKey) {
-              // console.log("Sending updated credential to extension:", {
-              //   [appKey]: {
-              //     username: editFormData.username,
-              //     password: editFormData.password
-              //   }
-              // });
-
+             
               chrome.runtime.sendMessage(CHROME_EXTENSION_ID, {
                 type: 'UPDATE_CREDENTIALS',
                 credentials: {
@@ -368,9 +348,6 @@ const handleSaveEdit = async () => {
 
 // To close the notification popup
 const handleClose = () => {
-    // if (currentNotification) {
-    //   markNotificationAsRead(currentNotification.id);
-    // }
     setShowNotificationModal(false);
 
     const currentIndex = notifications.findIndex(
@@ -420,7 +397,7 @@ const handleClose = () => {
     </Container>
     
     
-
+{/* MyVault  */}
 <Modal show={showVault} onHide={() => setShowVault(false)} centered size="lg">
         <Modal.Header closeButton className="bg-primary text-white">
           <Modal.Title>🔐 My Vault</Modal.Title>
@@ -541,7 +518,24 @@ const handleClose = () => {
         </Modal.Footer>
       </Modal>
 
-<ToastContainer />
+{/* <ToastContainer /> */}
+
+
+
+{/* To Display a Whatsapp image with whatsapp no */}
+<div className="whatsapp-container" onClick={() => setShowWhatsapp(!showWhatsapp)}>
+  <div className={`whatsapp-slide ${showWhatsapp ? "active" : ""}`}>
+    <div className="whatsapp-icon">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
+    </div>
+    <div className={`whatsapp-number ${showWhatsapp ? "show" : ""}`}>
+      {whatsappNumber}
+    </div>
+  </div>
+</div>
+
+
+
 
     </>
   );

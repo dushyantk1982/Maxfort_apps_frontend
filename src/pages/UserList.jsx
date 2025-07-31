@@ -6,7 +6,6 @@ import axios from 'axios';
 import '../css/UserList.css'
 import API_BASE_URL from "../config";
 
-
 const UserList = () => {
 const [users, setUsers] = useState([]);
 const [page, setPage] = useState(1);
@@ -14,32 +13,58 @@ const [perPage, setPerPage] = useState(15);
 const [totalPages, setTotalPages] = useState(0);
 const [selectedUser, setSelectedUser] = useState(null); // To store the user details for editing/viewing
 const [showModal, setShowModal] = useState(false); // To control modal visibility
-const [userFormData, setUserFormData] = useState({ name: '', email: '', mobile_number: '', role: '', is_active:'', password:'' }); // For editing user details
+const [userFormData, setUserFormData] = useState({ name: '', email: '', mobile_number: '', role: '', employee_code: '', admission_no: '', class_name: '', section: '', is_active:'', password:'' }); // For editing user details
 const [showConfirmModal, setShowConfirmModal] = useState(false);
 // const [selectedUser, setSelectedUser] = useState(null);
 const [showCredentialsModal, setShowCredentialsModal] = useState(false);
 const [selectedUserCredentials, setSelectedUserCredentials] = useState([]);
 const [loadingCredentials, setLoadingCredentials] = useState(false);
+const [searchTerm, setSearchTerm] = useState("");
+const [filterEmployeeCode, setFilterEmployeeCode] = useState("");
+const [filterAdmissionNo, setFilterAdmissionNo] = useState("");
+const [filterClassName, setFilterClassName] = useState("");
+const [filterSection, setFilterSection] = useState("");
+const [filterUserRole, setFilterUserRole] = useState("");
+const [filterOptions, setFilterOptions] = useState({employee_codes: [], admission_nos: [], class_names: [], sections: [], roles: []});
 
 
+const loadUsers = async (page = 1) => {
+  try {
+    
+    const user_filter = {
+      employee_code: filterEmployeeCode,
+      admission_no: filterAdmissionNo,
+      class_name: filterClassName,
+      section: filterSection,
+      user_role: filterUserRole 
+    };
 
-  const loadUsers = async (page = 1) => {
-    const data = await fetchUsers(page, perPage);
+    const data = await fetchUsers(page, perPage, searchTerm, user_filter);  // now using searchQuery
     setUsers(data.users);
     setTotalPages(data.total_pages);
+    setPage(page);  // Update current page
+  } catch (err) {
+    console.error("Failed to fetch users:", err);
+  }
+};
 
-  };
 
   useEffect(() => {
-    // axios.get("http://localhost:8000/users")
     axios.get(`${API_BASE_URL}/users`)
       .then(res => {
-        // console.log(res.data); 
         setUsers(res.data.users);  // Extracting the 'users' array from the response
         setTotalPages(res.data.total_pages); // Set the total pages for pagination
       })
       .catch(err => {
         console.error("Failed to fetch users:", err);
+      });
+
+      axios.get(`${API_BASE_URL}/users/userFilters`)
+      .then(res => {
+        setFilterOptions(res.data);
+      })
+      .catch(err => {
+        console.error("Failed to fetch filter options:", err);
       });
   }, []);
 
@@ -48,18 +73,11 @@ const [loadingCredentials, setLoadingCredentials] = useState(false);
   };
 
   
-  // const handleDelete = async (id) => {
-  //   if (window.confirm("Are you sure you want to delete this user?")) {
-  //     await deleteUser(id);
-  //     loadUsers(); // Refresh list
-  //   }
-  // };
 
   const handleView = (user) => {
     setSelectedUser(user);
-    setUserFormData({ name: user.name, email: user.email, mobile_number: user.mobile_number, role: user.role, password:user.password });
+    setUserFormData({ name: user.name, email: user.email, mobile_number: user.mobile_number, role: user.role, employee_code: user.employee_code, admission_no: user.admission_no, class_name: user.class_name, section: user.section, password:user.password });
     setShowModal(true); // Show the modal for user details
-    // alert(`User Info:\nName: ${user.name}\nEmail: ${user.email}\nMobile: ${user.mobile_number}\nRole: ${user.role}`);
   };
 
   const handleCloseModal = () => setShowModal(false); // Close the modal
@@ -73,8 +91,6 @@ const [loadingCredentials, setLoadingCredentials] = useState(false);
   };
 
   const handleSaveChanges = async () => {
-    // console.log("Updating user ID:", selectedUser.id);
-    // console.log("Data to send:", userFormData);
     try {
 
           const payload = { ...userFormData };
@@ -83,7 +99,6 @@ const [loadingCredentials, setLoadingCredentials] = useState(false);
           }
 
         const result = await updateUser(selectedUser.id, userFormData);
-        // console.log("User update result:", result)
         setShowModal(false);
         fetchUsers(); // Refresh the table
         loadUsers();  // Refresh list after update
@@ -125,21 +140,30 @@ const [loadingCredentials, setLoadingCredentials] = useState(false);
 
   // To view user's app credentials
   const handleViewCredentials = async (user) => {
+    const token = localStorage.getItem("token");
     setLoadingCredentials(true);
     try {
       const response = await axios.get(
         `${API_BASE_URL}/admin/user-credentials/${user.id}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
+            Authorization: `Bearer ${token}`
           }
         }
       );
+
       setSelectedUserCredentials(response.data);
       setShowCredentialsModal(true);
     } catch (error) {
       console.error("Error fetching credentials:", error);
-      alert("Failed to fetch user credentials");
+      // Redirect to login page if session is expired
+      if(error.response?.status===401){
+        alert("Session expired. Please login again.");
+        localStorage.removeItem("token");
+        window.location.href="/login";
+      }else{
+        alert("Failed to fetch user credentials");
+      }
     } finally {
       setLoadingCredentials(false);
     }
@@ -151,6 +175,62 @@ const [loadingCredentials, setLoadingCredentials] = useState(false);
       <CustomeNavbar />
       <div className="container user-table-container">
   <h2 className="mb-4 text-center text-primary">Registered Users</h2>
+  <div className="d-inline-flex gap-3 justify-content-even mb-3">
+    <div className="col">
+          <Form.Select value={filterUserRole} onChange={(e) => setFilterUserRole(e.target.value)} className="w-auto">
+            <option value="">All Role</option>
+            {filterOptions.roles.map((role) => (
+              <option key={role} value={role}>{role}</option>
+            ))}
+          </Form.Select>
+    </div>
+    <div className="col">
+          <Form.Select value={filterEmployeeCode} onChange={(e) => setFilterEmployeeCode(e.target.value)} className="w-auto">
+            <option value="">All Employee Code</option>
+            {filterOptions.employee_codes.map((emp) => (
+              <option key={emp} value={emp}>{emp}</option>
+            ))}
+          </Form.Select>
+    </div>
+    <div className="col">
+          <Form.Select value={filterAdmissionNo} onChange={(e) => setFilterAdmissionNo(e.target.value)} className="w-auto">
+            <option value="">All Admission No</option>
+            {filterOptions.admission_nos.map((addn) => (
+              <option key={addn} value={addn}>{addn}</option>
+            ))}
+          </Form.Select>
+    </div>
+    <div className="col">
+          <Form.Select value={filterClassName} onChange={(e) => setFilterClassName(e.target.value)} className="w-auto">
+            <option value="">All Class</option>
+            {filterOptions.class_names.map((cls) => (
+              <option key={cls} value={cls}>{cls}</option>
+            ))}
+          </Form.Select>
+    </div>
+    <div className="col">
+          <Form.Select value={filterSection} onChange={(e) => setFilterSection(e.target.value)} className="w-auto">
+            <option value="">All Section</option>
+            {filterOptions.sections.map((sec) => (
+              <option key={sec} value={sec}>{sec}</option>
+            ))}
+          </Form.Select>
+    </div>
+    
+      
+  </div>
+  <div className="d-flex justify-content-center mb-3">
+      <Form.Control
+        type="text"
+        placeholder="Search by admission no, employee code, class, or section"
+        className="me-2 w-50"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+      <Button variant="primary" onClick={() => loadUsers(1)}>
+        <i className="bi bi-search"></i>{/* Search */}
+      </Button>
+  </div>
   <Table bordered hover responsive className="user-table">
     <thead className="gradient-header text-white text-center">
       <tr>
@@ -159,6 +239,10 @@ const [loadingCredentials, setLoadingCredentials] = useState(false);
         <th>Email</th>
         <th>Mobile</th>
         <th>Role</th>
+        <th>Employee Code</th>
+        <th>Admission No</th>
+        <th>Class</th>
+        <th>Section</th>
         <th>Status</th>
         <th>Actions</th>
         <th>App<br />Credentials</th>
@@ -172,6 +256,10 @@ const [loadingCredentials, setLoadingCredentials] = useState(false);
           <td>{user.email}</td>
           <td>{user.mobile_number}</td>
           <td>{user.role}</td>
+          <td>{user.employee_code}</td>
+          <td>{user.admission_no}</td>
+          <td>{user.class_name}</td>
+          <td>{user.section}</td>
           <td>
               <Form.Check type="switch" id={`toggle-${user.id}`} checked={user.is_active} onChange={(e) => handleToggleStatus(user, e.target.checked)}/>
           </td>
@@ -209,32 +297,48 @@ const [loadingCredentials, setLoadingCredentials] = useState(false);
           <Form>
             <Form.Group controlId="userName">
               <Form.Label className="fw-bold mb-1">Name</Form.Label>
-              <Form.Control className="mb-1" type="text" name="name" value={userFormData.name} onChange={handleInputChange} disabled={!selectedUser} />
+              <Form.Control className="mb-1" type="text" name="name" value={userFormData.name || ""} onChange={handleInputChange} disabled={!selectedUser} />
             </Form.Group>
 
             <Form.Group controlId="userEmail">
               <Form.Label className="fw-bold mb-1">Email</Form.Label>
-              <Form.Control className="mb-1" type="email" name="email" value={userFormData.email} disabled readOnly />
+              <Form.Control className="mb-1" type="email" name="email" value={userFormData.email || ""} disabled readOnly />
             </Form.Group>
 
             <Form.Group controlId="userMobile">
               <Form.Label className="fw-bold mb-1">Mobile Number</Form.Label>
-              <Form.Control className="mb-1" type="text" name="mobile_number" value={userFormData.mobile_number} onChange={handleInputChange} disabled={!selectedUser} />
+              <Form.Control className="mb-1" type="text" name="mobile_number" value={userFormData.mobile_number || ""} onChange={handleInputChange} disabled={!selectedUser} />
             </Form.Group>
 
             <Form.Group controlId="userPassword">
                 <Form.Label className="fw-bold mb-1">Password</Form.Label>
-                <Form.Control className="mb-1" type="text" name="password" value={userFormData.password} placeholder="Leave blank to keep existing password" onChange={handleInputChange} />
+                <Form.Control className="mb-1" type="text" name="password" value={userFormData.password || ""} placeholder="Leave blank to keep existing password" onChange={handleInputChange} />
             </Form.Group>
 
             <Form.Group controlId="userRole">
               <Form.Label className="fw-bold mb-1">Role</Form.Label>
-              <Form.Select className="mb-1" name="role" value={userFormData.role} onChange={handleInputChange} disabled={!selectedUser} >
+              <Form.Select className="mb-1" name="role" value={userFormData.role || ""} onChange={handleInputChange} disabled={!selectedUser} >
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
               </Form.Select>
+            </Form.Group>
+            <Form.Group controlId="userEmployeeCode">
+              <Form.Label className="fw-bold mb-1">Employee Code</Form.Label>
+              <Form.Control className="mb-1" type="text" name="employee_code" value={userFormData.employee_code || ""} onChange={handleInputChange} disabled={!selectedUser} />
+            </Form.Group>
+            <Form.Group controlId="userAdmissionNo">
+              <Form.Label className="fw-bold mb-1">Admission No</Form.Label>
+              <Form.Control className="mb-1" type="text" name="admission_no" value={userFormData.admission_no || ""} onChange={handleInputChange} disabled={!selectedUser} />
+            </Form.Group>
+            <Form.Group controlId="userClass">
+              <Form.Label className="fw-bold mb-1">Class</Form.Label>
+              <Form.Control className="mb-1" type="text" name="class_name" value={userFormData.class_name || ""} onChange={handleInputChange} disabled={!selectedUser} />
+            </Form.Group>
+            <Form.Group controlId="userSection">
+              <Form.Label className="fw-bold mb-1">Section</Form.Label>
+              <Form.Control className="mb-1" type="text" name="section" value={userFormData.section || ""} onChange={handleInputChange} disabled={!selectedUser} />
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -309,9 +413,6 @@ const [loadingCredentials, setLoadingCredentials] = useState(false);
             </Button>
           </Modal.Footer>
         </Modal>
-
-
-
 
     </>
   );
