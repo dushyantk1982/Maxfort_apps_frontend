@@ -26,7 +26,7 @@ export const fetchProtectedData = async (endpoint, method = "GET", body = null) 
 
     const token = localStorage.getItem("token");
 
-    // console.log("Token: ", token);
+    console.log("Token: ", token);
 
     const headers = {
         "Authorization" : `Bearer ${token}`,
@@ -165,6 +165,28 @@ export const fetchNotifications = async (token) => {
   }
 };
 
+// Fetch All notifications for admin
+export const fetchAllNotifications = async (token) => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/view_all_notifications`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    throw new Error("Failed to fetch notifications");
+  }
+};
+
+// To view notification details at admin end
+export const fetchNotificationUsers = async (notificationId, token) => {
+  const res = await axios.get(`${API_BASE_URL}/notifications/${notificationId}/users`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
+
 // Fetch Users to notification
 export const fetchUsersBySearch = async (query, token) => {
   const res = await fetch(`${API_BASE_URL}/users/search?query=${query}`, {
@@ -226,4 +248,8 @@ export const checkEmailExists = async (email) => {
 
   return await res.json();
 };
+
+
+
+
 

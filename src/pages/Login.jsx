@@ -184,7 +184,7 @@ const Login = () => {
                               Login with Password
                             </button>
 
-                            <button
+                           {/* <button
                               className="btn btn-outline-primary w-100"
                               onClick={async () => {
                                 try {
@@ -198,7 +198,7 @@ const Login = () => {
                               disabled={!username}
                             >
                               Login with OTP
-                            </button>
+                            </button> */}
                         </>
                     )}
 
